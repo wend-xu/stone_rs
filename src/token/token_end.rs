@@ -7,11 +7,8 @@ pub struct TokenEOL {
 }
 
 impl TokenEOL {
-    pub fn new(line_number: usize) -> TokenEOL {
-        TokenEOL {
-            token_line: TokenLine::new(line_number),
-        }
-    }
+    pub fn new(line_number: usize) -> Box<TokenEOL> {
+        Box::new(TokenEOL { token_line: TokenLine::new(line_number), }) }
 }
 
 impl Token for TokenEOL {
@@ -32,7 +29,8 @@ pub struct TokenEOF {
 
 
 impl TokenEOF {
-    fn new(line_number: usize) -> TokenEOF { TokenEOF { token_line: TokenLine::new(line_number) } }
+    pub fn new(line_number: usize) -> Box<TokenEOF> {
+        Box::new(TokenEOF { token_line: TokenLine::new(line_number) }) }
 }
 impl Token for TokenEOF {
     fn value(&self) -> &TokenValue {

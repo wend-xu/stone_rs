@@ -17,12 +17,12 @@ impl TokenNumber {
         )
     }
 
-    pub fn new_iternal(line_number: usize, number_iternal: &str) -> Box<TokenNumber> {
-        let number = match number_iternal.parse::<isize>() {
+    pub fn new_literal(line_number: usize, number_literal: &str) -> Box<TokenNumber> {
+        let number = match number_literal.parse::<isize>() {
             Ok(value) => { value }
             Err(_) => {
-                panic!("[TokenNumber][new_iternal] number_iternal:{number_iternal} can't parse to number,\
-            must number iternal when token init,this issue indicates a segmentation error  ")
+                panic!("[TokenNumber][new_literal] number_literal:{number_literal} can't parse to number,\
+            must number literal when token init,this issue indicates a segmentation error  ")
             }
         };
         Self::new(line_number, number)

@@ -1,16 +1,17 @@
+use crate::lexer::lexer::Lexer;
+use crate::token::token_end::{TokenEOF, TokenEOL};
 use crate::token::token_identifier::TokenIdentifier;
 use crate::token::token_number::TokenNumber;
-use crate::token::token_string::TokenString;
+use crate::token::token_string::TokenText;
 use crate::token::Token;
 use crate::util::regex_util::get_from_captures;
 use regex::{Captures, Regex};
+use std::cell::RefCell;
 
 pub const MATCH_COMMENT: &str = "//.";
 pub const MATCH_IDENTIFIER: &str = r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[+\-*/%=\\|&,.!?(){}\[\]><]"#;
 pub const MATCH_NUMBER: &str = r"[0-9]+";
 pub const MATCH_STRING: &str = r#""((?:\\"|\\\\|\\n|[^"\\])*)""#;
-
-
 pub const MATCH_NAMES: [&str; 4] = ["comment", "number", "string", "identifier"];
 
 pub enum MatchNames {
@@ -21,21 +22,21 @@ pub enum MatchNames {
 }
 
 impl MatchNames {
-    fn iternal_all() -> &'static [&'static str; 4] {
+    fn literal_all() -> &'static [&'static str; 4] {
         &MATCH_NAMES
     }
 
-    fn of_iternal(iternal: &str) -> MatchNames {
-        match iternal {
+    fn of_literal(literal: &str) -> MatchNames {
+        match literal {
             "comment" => MatchNames::Comment,
             "number" => MatchNames::Number,
             "string" => MatchNames::String,
             "identifier" => MatchNames::Identifier,
-            _ => panic!("[MatchNames] not exist type iternal is {iternal}"),
+            _ => panic!("[MatchNames] not exist type literal is {literal}"),
         }
     }
 
-    fn iternal(&self) -> &str {
+    fn literal(&self) -> &str {
         match self {
             MatchNames::Comment => { MATCH_NAMES[0] }
             MatchNames::Number => { MATCH_NAMES[1] }
@@ -47,7 +48,7 @@ impl MatchNames {
 
 pub struct LineReaderLexer {
     match_line_regex: Regex,
-    vec: Vec<Box<dyn Token>>,
+    vec: RefCell<Vec<Box<dyn Token>>>,
 }
 
 pub fn match_line_regex_str() -> String {
@@ -61,10 +62,10 @@ impl LineReaderLexer {
     pub fn new() -> LineReaderLexer {
         let match_line = match_line_regex_str();
         let match_line_regex: Regex = Regex::new(match_line.as_str()).unwrap();
-        LineReaderLexer { match_line_regex, vec: vec![] }
+        LineReaderLexer { match_line_regex, vec: RefCell::new(Vec::new()) }
     }
 
-    pub fn read_line(&mut self, line: &str, line_number: usize) -> bool {
+    pub fn read_line(&self, line: &str, line_number: usize) {
         let matcher = &self.match_line_regex;
 
         let mut pos = 0;
@@ -79,11 +80,8 @@ impl LineReaderLexer {
                     false
                 }
                 Some(cap) => {
-                    let (next_pos, token_op) = Self::gen_token(line_number, cap);
-                    if let Some(token_some) = token_op {
-                        println!("line number [{line_number}] found token {:?} had parse ... ", token_some.value());
-                        self.vec.push(token_some);
-                    }
+                    let (next_pos, token_op) = Self::gen_token(&line_number, cap);
+                    self.put_token_op(token_op);
                     if next_pos == 0 { false } else {
                         pos = next_pos;
                         true
@@ -91,33 +89,49 @@ impl LineReaderLexer {
                 }
             }
         }
-        false
+        self.put_token(TokenEOL::new(line_number.clone()))
     }
 
-    fn gen_token(line_number: usize, cap: Captures) -> (usize, Option<Box<dyn Token>>) {
+    fn gen_token(line_number: &usize, cap: Captures) -> (usize, Option<Box<dyn Token>>) {
         let mut next_index = 0;
         let token_some: Option<Box<dyn Token>> =
-            if let Some((name, token_iternal, _, end)) = get_from_captures(&cap, MatchNames::iternal_all()) {
+            if let Some((name, token_literal, _, end)) = get_from_captures(&cap, MatchNames::literal_all()) {
                 next_index = end;
                 // 每次都克隆一个 行号， 将所有权转移到 Token
                 let line_number_clone = line_number.clone();
-                match MatchNames::of_iternal(&name) {
+                match MatchNames::of_literal(&name) {
                     MatchNames::Comment => { None }
-                    MatchNames::Number => { Some(TokenNumber::new_iternal(line_number_clone, token_iternal)) }
-                    MatchNames::String => { Some(TokenString::new(line_number_clone, token_iternal)) }
-                    MatchNames::Identifier => { Some(TokenIdentifier::new(line_number_clone, token_iternal)) }
+                    MatchNames::Number => { Some(TokenNumber::new_literal(line_number_clone, token_literal)) }
+                    MatchNames::String => { Some(TokenText::new(line_number_clone, token_literal)) }
+                    MatchNames::Identifier => { Some(TokenIdentifier::new(line_number_clone, token_literal)) }
                 }
             } else { None };
         (next_index, token_some)
     }
+
+    fn put_token_op(&self, token_op: Option<Box<dyn Token>>) {
+        if let Some(token_some) = token_op {
+            println!("line number [{}] found token {:?} had parse ... ", token_some.line_number(), token_some.value());
+            &self.vec.borrow_mut().push(token_some);
+        }
+    }
+
+    fn put_token(&self, token: Box<dyn Token>) {
+        &self.vec.borrow_mut().push(token);
+    }
 }
 
-// impl Lexer for LineReaderLexer {
-//     fn read(&self) {
-//         todo!()
-//     }
-//
-//     fn peek(&self, index: usize) -> Option<dyn Token<dyn Debug>> {
-//         todo!()
-//     }
-// }
+impl Lexer for LineReaderLexer {
+    fn read(&self, script: String) {
+        let mut line_count = 0;
+        for (index, line) in script.lines().enumerate() {
+            &self.read_line(line, index );
+            line_count += 1;
+        };
+        self.put_token(TokenEOF::new(line_count))
+    }
+
+    fn peek(&self, index: usize) -> Box<dyn Token> {
+        todo!()
+    }
+}
