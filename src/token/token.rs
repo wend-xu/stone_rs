@@ -1,39 +1,39 @@
 use std::fmt::Debug;
 use std::ops::Deref;
 
-// #[derive(Debug)]
-// pub enum Token {
-//     EOF(TokenEOF),
-//     EOL(TokenEOL),
-//     IDENTIFIER(i32, String),
-//     NUMBER(i32, i32),
-//     TEXT(i32, String),
-// }
-
 #[derive(Debug)]
-pub struct TokenBase {
-    line_number: u32,
+pub enum TokenValue{
+    EOF,
+    EOL,
+    IDENTIFIER(String),
+    NUMBER(isize),
+    TEXT(String),
 }
 
-impl TokenBase {
-    pub fn new(line_number: u32) -> TokenBase {
-        TokenBase { line_number }
+#[derive(Debug)]
+pub struct TokenLine {
+    line_number: usize,
+}
+
+impl TokenLine {
+    pub fn new(line_number: usize) -> TokenLine {
+        TokenLine { line_number }
     }
 }
 
-impl Deref for TokenBase {
-    type Target = u32;
+impl Deref for TokenLine {
+    type Target = usize;
 
     fn deref(&self) -> &Self::Target {
         &self.line_number
     }
 }
 
-pub trait Token<V:Debug> {
-    // fn value(&self) -> Option<V>;
-    fn value(&self) -> Option<&V>;
 
-    fn line_number(&self) -> &u32;
+pub trait Token {
+    fn value(&self) -> &TokenValue;
+
+    fn line_number(&self) -> &usize;
 }
 
 

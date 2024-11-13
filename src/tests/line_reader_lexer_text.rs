@@ -84,6 +84,7 @@ mod line_reader_lexer_text {
     #[test]
     pub fn line_match_test(){
         let test_code = "i=j>0 || j = 0 ? \"中文111111\"";
+        println!("{}",match_line_regex_str());
         let regex = Regex::new(match_line_regex_str().as_str()).unwrap();
 
         for sub_cap in regex.captures_iter(test_code) {
@@ -110,8 +111,8 @@ mod line_reader_lexer_text {
         // let regex = Regex::new( r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[=+]"#).unwrap();
         // let regex = Regex::new(MATCH_IDENTIFIER).unwrap();
         // println!("{:?}", match_line);
-        // let mut i:i32 = 0;
-        // while i < test_code.len() as i32 && i != -1{
+        // let mut i:isize = 0;
+        // while i < test_code.len() as isize && i != -1{
         //     i = match_and_println(&regex,test_code,i);
         // }
         // match_and_println_1(&regex,test_code,0);
@@ -122,12 +123,12 @@ mod line_reader_lexer_text {
         // match_and_println_1(&regex,test_code,6);
 
         // let test_code = "i=i+2*3";
-        let lexer = LineReaderLexer::new();
+        let mut lexer = LineReaderLexer::new();
         lexer.read_line(test_code,1);
     }
 
 
-    fn match_and_println(regex:&Regex,str:&str,start:i32) ->i32{
+    fn match_and_println(regex:&Regex,str:&str,start:isize) ->isize{
         if regex.is_match(str) {
             match  regex.find_at(str, start as usize) {
                 None => {
@@ -135,7 +136,7 @@ mod line_reader_lexer_text {
                 }
                 Some(mat) => {
                     println!("开始位置 {start} 匹配结果:{} , 匹配终点：{}",mat.as_str(),mat.end());
-                    mat.end() as i32
+                    mat.end() as isize
                 }
             }
         }else{

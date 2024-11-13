@@ -1,28 +1,31 @@
-use crate::token::token::TokenBase;
-use crate::token::Token;
+use crate::token::token::TokenLine;
+use crate::token::{Token, TokenValue};
 
+#[derive(Debug)]
 pub struct TokenString {
-    token_base: TokenBase,
-    string: String,
+    token_base: TokenLine,
+    text: TokenValue,
 }
 
 
 impl TokenString {
-    fn new(line_number: u32, str: &str) -> TokenString {
-        TokenString {
-            token_base: TokenBase::new(line_number),
-            string: str.to_string(),
-        }
+    pub fn new(line_number: usize, str: &str) -> Box<TokenString> {
+        Box::new(
+            TokenString {
+                token_base: TokenLine::new(line_number),
+                text: TokenValue::TEXT(str.to_string()),
+            }
+        )
     }
 }
 
 
-impl Token<String> for TokenString {
-    fn value(&self) -> Option<&String> {
-        Some(&self.string)
+impl Token for TokenString {
+    fn value(&self) -> &TokenValue {
+        &self.text
     }
 
-    fn line_number(&self) -> &u32 {
+    fn line_number(&self) -> &usize {
         &self.token_base
     }
 }

@@ -1,47 +1,45 @@
-use crate::token::token::TokenBase;
-use crate::token::Token;
+use crate::token::token::TokenLine;
+use crate::token::{Token, TokenValue};
 
 #[derive(Debug)]
 pub struct TokenEOL {
-    token_base: TokenBase,
-    eol: String,
+    token_line: TokenLine,
 }
 
 impl TokenEOL {
-    pub fn new(line_number: u32) -> TokenEOL {
+    pub fn new(line_number: usize) -> TokenEOL {
         TokenEOL {
-            token_base: TokenBase::new(line_number),
-            eol: String::from("\n"),
+            token_line: TokenLine::new(line_number),
         }
     }
 }
 
-impl Token<String> for TokenEOL {
-    fn value(&self) -> Option<&String> {
-        Some(&self.eol)
+impl Token for TokenEOL {
+    fn value(&self) -> &TokenValue {
+        &TokenValue::EOL
     }
 
 
-    fn line_number(&self) -> &u32 {
-        &self.token_base
+    fn line_number(&self) -> &usize {
+        &self.token_line
     }
 }
 
 #[derive(Debug)]
 pub struct TokenEOF {
-    token_base: TokenBase,
+    token_line: TokenLine,
 }
 
 
 impl TokenEOF {
-    fn new(line_number: u32) -> TokenEOF { TokenEOF { token_base: TokenBase::new(line_number) } }
+    fn new(line_number: usize) -> TokenEOF { TokenEOF { token_line: TokenLine::new(line_number) } }
 }
-impl Token<String> for TokenEOF {
-    fn value(&self) -> Option<&String> {
-        None
+impl Token for TokenEOF {
+    fn value(&self) -> &TokenValue {
+        &TokenValue::EOF
     }
 
-    fn line_number(&self) -> &u32 {
-        &self.token_base
+    fn line_number(&self) -> &usize {
+        &self.token_line
     }
 }

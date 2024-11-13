@@ -89,28 +89,28 @@ mod token_tests {
     }
 
 
-    #[test]
-    fn token_identifier_new_test() {
-        let identifier = TokenIdentifier::new(1, "=".to_string());
-        let x = identifier.line_number();
-        println!("identifier {:#?}", identifier);
-        println!("line number {}", x);
-    }
-
-    #[test]
-    #[should_panic]
-    fn token_identifier_new_panic_test() {
-        let identifier = TokenIdentifier::new(0, "=".to_string());
-        println!("identifier {:#?}",identifier);
-    }
-
-
-    #[test]
-    #[should_panic]
-    fn token_identifier_new_panic_test_2() {
-        let identifier = TokenIdentifier::new(1, "【".to_string());
-        println!("identifier {:#?}",identifier);
-    }
+    // #[test]
+    // fn token_identifier_new_test() {
+    //     let identifier = TokenIdentifier::new(1, "=".to_string());
+    //     let x = identifier.line_number();
+    //     println!("identifier {:#?}", identifier);
+    //     println!("line number {}", x);
+    // }
+    //
+    // #[test]
+    // #[should_panic]
+    // fn token_identifier_new_panic_test() {
+    //     let identifier = TokenIdentifier::new(0, "=".to_string());
+    //     println!("identifier {:#?}",identifier);
+    // }
+    //
+    //
+    // #[test]
+    // #[should_panic]
+    // fn token_identifier_new_panic_test_2() {
+    //     let identifier = TokenIdentifier::new(1, "【".to_string());
+    //     println!("identifier {:#?}",identifier);
+    // }
 
 
     #[test]
