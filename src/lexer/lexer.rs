@@ -1,7 +1,7 @@
 use crate::token::Token;
 
 pub trait Lexer {
-    fn read(&self,script:String);
+    fn read(&self) -> Option<Box<dyn Token>>;
 
-    fn peek(&self,index: usize) -> Box<dyn Token>;
+    fn peek(&self, index: usize) -> Option<&Box<dyn Token>>;
 }

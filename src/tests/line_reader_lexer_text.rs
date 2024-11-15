@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod line_reader_lexer_text {
-    use std::time::SystemTime;
-    use crate::lexer::line_reader_lexer::{*};
-    use regex::{Match, Regex};
     use crate::lexer::lexer::Lexer;
+    use crate::lexer::line_reader_lexer::*;
+    use regex::Regex;
+    use std::time::SystemTime;
+    use crate::token::Token;
 
     #[test]
     pub fn test_matcher_string() {
@@ -23,10 +24,10 @@ mod line_reader_lexer_text {
 
         let str = r#""hello world":"fuck the world""#;
         let find0 = regex.find(&str).unwrap();
-        println!("{} - {}",find0.as_str() , find0.end());
+        println!("{} - {}", find0.as_str(), find0.end());
 
-        let find1 = regex.find_at(&str,13).unwrap();
-        println!("{} - {}",find1.as_str() , find1.end());
+        let find1 = regex.find_at(&str, 13).unwrap();
+        println!("{} - {}", find1.as_str(), find1.end());
     }
 
 
@@ -93,7 +94,7 @@ mod line_reader_lexer_text {
     #[test]
     pub fn line_match_test() {
         let test_code = "i=j>0 || j = 0 ? \"中文111111\"";
-        let mut lexer = LineReaderLexer::new();
+        let mut lexer = LineReaderLexer::new(test_code.to_string());
         lexer.read_line(test_code, 1);
     }
 
@@ -102,9 +103,11 @@ mod line_reader_lexer_text {
         let test_code = r#"
            // size = j.len()
         "#;
-        let mut lexer = LineReaderLexer::new();
-        lexer.read(test_code.to_string());
-        println!("{}", lexer);
+        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        while let Some(token_box) = lexer.read() {
+            println!("{:?}", token_box.value());
+        }
+        // println!("{}", lexer);
     }
 
     #[test]
@@ -113,26 +116,31 @@ mod line_reader_lexer_text {
            i=j>0 || j = 0 ? "中文111111":"中文1222222"
             size = j.len()
         "#;
-        let mut lexer = LineReaderLexer::new();
-        lexer.read(test_code.to_string());
-        println!("{}", lexer);
+        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        while let Some(token_box) = lexer.read() {
+            println!("{:?}", token_box.value());
+        }
     }
 
 
     #[test]
     pub fn line_match_test_10000() {
-        let test_code = r#"i=j>0 || j = 0 ? "中文111111":"中文1222222""#;
-        let mut lexer = LineReaderLexer::new();
-        lexer.read(test_code.to_string());
-        test_code.to_string();
-        println!("{}", lexer);
+        let test_code = r#"
+           i=j>0 || j = 0 ? "中文111111":"中文1222222"
+            size = j.len()
+        "#;
+        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        while let Some(token_box) = lexer.read() {
+            println!("{:?}", token_box.value());
+        }
+        let match_line = match_line_regex_str();
+        let match_line_regex: Regex = Regex::new(match_line.as_str()).unwrap();
+
         let start = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
         for i in 0..10000 {
-            let mut lexer = LineReaderLexer::new();
-            lexer.read(test_code.to_string());
+            let lexer = LineReaderLexer::new_with_regex(test_code.to_string(), match_line_regex.clone());
         }
         let end = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
         println!("耗时 {} ", end - start);
     }
-
 }
