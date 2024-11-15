@@ -7,9 +7,10 @@ use crate::token::Token;
 use crate::util::regex_util::get_from_captures;
 use regex::{Captures, Regex};
 use std::cell::RefCell;
+use std::fmt::{Debug, Display, Formatter};
 
 pub const MATCH_COMMENT: &str = "//.";
-pub const MATCH_IDENTIFIER: &str = r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[+\-*/%=\\|&,.!?(){}\[\]><]"#;
+pub const MATCH_IDENTIFIER: &str = r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[+\-*/%=\\|&,.!?(){}\[\]><:]"#;
 pub const MATCH_NUMBER: &str = r"[0-9]+";
 pub const MATCH_STRING: &str = r#""((?:\\"|\\\\|\\n|[^"\\])*)""#;
 pub const MATCH_NAMES: [&str; 4] = ["comment", "number", "string", "identifier"];
@@ -69,23 +70,20 @@ impl LineReaderLexer {
         let matcher = &self.match_line_regex;
 
         let mut pos = 0;
-        let end_pos = line.len() as usize;
-
+        let end_pos = line.len();
+        // println!("while parse line : [{line_number}], len is [{end_pos}]");
         let mut has_more = true;
         while has_more && pos < end_pos {
             let option = matcher.captures_at(line, pos);
             has_more = match option {
                 None => {
-                    println!("line number [{line_number}] find None ,end line find ...");
+                    // println!("line number [{line_number}] find None ,end line find ...");
                     false
                 }
                 Some(cap) => {
                     let (next_pos, token_op) = Self::gen_token(&line_number, cap);
-                    self.put_token_op(token_op);
-                    if next_pos == 0 { false } else {
-                        pos = next_pos;
-                        true
-                    }
+                    pos = next_pos;
+                    self.put_token_op(&next_pos, token_op)
                 }
             }
         }
@@ -109,10 +107,13 @@ impl LineReaderLexer {
         (next_index, token_some)
     }
 
-    fn put_token_op(&self, token_op: Option<Box<dyn Token>>) {
-        if let Some(token_some) = token_op {
-            println!("line number [{}] found token {:?} had parse ... ", token_some.line_number(), token_some.value());
-            &self.vec.borrow_mut().push(token_some);
+    fn put_token_op(&self, next_pos: &usize, token_op: Option<Box<dyn Token>>) -> bool {
+        match token_op {
+            None => { false }
+            Some(token_some) => {
+                &self.vec.borrow_mut().push(token_some);
+                *next_pos != 0
+            }
         }
     }
 
@@ -121,11 +122,29 @@ impl LineReaderLexer {
     }
 }
 
+impl Display for LineReaderLexer {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[LineReaderLexer] \n")?;
+        write!(f, "\tmatch regex : {} \n", self.match_line_regex)?;
+        let mut line_num: usize = 0;
+        let vec_bor = &self.vec.borrow();
+        write!(f, "\tline number : [0]\n")?;
+        for token in vec_bor.iter() {
+            if line_num != *token.line_number() {
+                line_num = *token.line_number();
+                write!(f, "\tline number : [{}]\n", line_num)?;
+            }
+            write!(f, "\t\t[{:?}]\n", token.value())?;
+        }
+        write!(f, "[LineReaderLexer] \n")
+    }
+}
+
 impl Lexer for LineReaderLexer {
     fn read(&self, script: String) {
         let mut line_count = 0;
         for (index, line) in script.lines().enumerate() {
-            &self.read_line(line, index );
+            &self.read_line(line, index);
             line_count += 1;
         };
         self.put_token(TokenEOF::new(line_count))

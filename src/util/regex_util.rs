@@ -7,5 +7,7 @@ pub fn get_from_captures<'a>(captures: &'a regex::Captures, names: &'a [&'a str]
             break;
         }
     }
-    if str_op.is_none() { None } else { str_op }
+    if str_op.is_none() {
+        None
+    } else { str_op }
 }

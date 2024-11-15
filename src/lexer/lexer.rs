@@ -1,5 +1,3 @@
-use std::fs::File;
-use std::io::BufReader;
 use crate::token::Token;
 
 pub trait Lexer {
