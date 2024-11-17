@@ -1,6 +1,5 @@
-use std::time::SystemTime;
 use crate::lexer::lexer::Lexer;
-use crate::lexer::line_reader_lexer::LineReaderLexer;
+use crate::token::Token;
 
 mod lexer;
 mod token;

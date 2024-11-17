@@ -95,7 +95,8 @@ mod line_reader_lexer_text {
     pub fn line_match_test() {
         let test_code = "i=j>0 || j = 0 ? \"中文111111\"";
         let mut lexer = LineReaderLexer::new(test_code.to_string());
-        lexer.read_line(test_code, 1);
+        // lexer.read_line(test_code, 1);
+        lexer.read_line();
     }
 
     #[test]
@@ -142,5 +143,33 @@ mod line_reader_lexer_text {
         }
         let end = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
         println!("耗时 {} ", end - start);
+    }
+
+
+    #[test]
+    pub fn mul_line_peek_test() {
+        let test_code = r#"
+           i=j>0 || j = 0 ? "中文111111":"中文1222222"
+            size = j.len()
+        "#;
+        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        // while let Some(token_box) = lexer.read() {
+        //     println!("{:?}", token_box.value());
+        // }
+        println!(" 重复读取测试： ");
+        for i in 0.. 10 {
+            if let Some(token_box) = lexer.peek(1) {
+                println!("{:?}", token_box.value());
+            }
+        }
+
+        println!(" 顺序预读取测试： ");
+        for i in 0.. 30 {
+            if let Some(token_box) = lexer.peek(i) {
+                println!("{:?}", token_box.value());
+            }else{
+                println!("没有更多 token ...")
+            }
+        }
     }
 }

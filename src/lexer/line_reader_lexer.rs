@@ -1,12 +1,11 @@
 use crate::lexer::lexer::Lexer;
-use crate::token::token_end::{TokenEOF, TokenEOL};
+use crate::token::token_end::TokenEOL;
 use crate::token::token_identifier::TokenIdentifier;
 use crate::token::token_number::TokenNumber;
 use crate::token::token_string::TokenText;
 use crate::token::Token;
 use crate::util::regex_util::get_from_captures;
 use regex::{Captures, Regex};
-use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Formatter};
 
@@ -51,8 +50,8 @@ impl MatchNames {
 pub struct LineReaderLexer {
     match_line_regex: Regex,
     code: Vec<String>,
-    current_line: RefCell<usize>,
-    vec: RefCell<VecDeque<Box<dyn Token>>>,
+    current_line: usize,
+    vec: VecDeque<Box<dyn Token>>,
 }
 
 pub fn match_line_regex_str() -> String {
@@ -74,34 +73,41 @@ impl LineReaderLexer {
         LineReaderLexer {
             match_line_regex,
             code: code.lines().map(|line| line.to_string()).collect(),
-            current_line: RefCell::new(0),
-            vec: RefCell::new(VecDeque::new()),
+            current_line: 0,
+            vec: VecDeque::new(),
         }
     }
 
-    pub fn read_line(&self, line: &str, line_number: usize) {
+    pub fn read_line(&mut self) -> &mut LineReaderLexer {
+        let current_line = self.current_line;
+        let code_line = self.code.len();
+        if current_line >= code_line {
+            return self;
+        }
+
         let matcher = &self.match_line_regex;
+        let line_code = self.code[current_line].trim();
 
         let mut pos = 0;
-        let end_pos = line.len();
-        // println!("while parse line : [{line_number}], len is [{end_pos}]");
+        let end_pos = line_code.len();
         let mut has_more = true;
         while has_more && pos < end_pos {
-            let option = matcher.captures_at(line, pos);
+            let option = matcher.captures_at(line_code, pos);
             has_more = match option {
                 None => {
                     // println!("line number [{line_number}] find None ,end line find ...");
                     false
                 }
                 Some(cap) => {
-                    let (next_pos, token_op) = Self::gen_token(&line_number, cap);
+                    let (next_pos, token_op) = Self::gen_token(&current_line, cap);
                     pos = next_pos;
-                    self.enqueue_token_op(&next_pos, token_op)
+                    Self::enqueue_token_op(&mut self.vec, &next_pos, token_op)
                 }
             }
         }
-        self.enqueue_token(TokenEOL::new(line_number.clone()));
-        self.current_line.replace(line_number);
+        Self::enqueue_token(&mut self.vec, TokenEOL::new(current_line.clone()));
+        self.current_line = current_line + 1;
+        self
     }
 
     fn gen_token(line_number: &usize, cap: Captures) -> (usize, Option<Box<dyn Token>>) {
@@ -121,35 +127,19 @@ impl LineReaderLexer {
         (next_index, token_some)
     }
 
-    fn enqueue_token_op(&self, next_pos: &usize, token_op: Option<Box<dyn Token>>) -> bool {
+    fn enqueue_token_op(vec: &mut VecDeque<Box<dyn Token>>, next_pos: &usize, token_op: Option<Box<dyn Token>>) -> bool {
         match token_op {
             None => { false }
             Some(token_some) => {
-                &self.vec.borrow_mut().push_back(token_some);
+                vec.push_back(token_some);
                 *next_pos != 0
             }
         }
     }
 
-    fn enqueue_token(&self, token: Box<dyn Token>) {
-        &self.vec.borrow_mut().push_back(token);
+    fn enqueue_token(vec: &mut VecDeque<Box<dyn Token>>, token: Box<dyn Token>) {
+        vec.push_back(token);
     }
-
-    // fn read(&self) -> Option<Box<dyn Token>> {
-    //     let option = self.vec.borrow_mut().pop_front();
-    //     let current_line = *self.current_line.borrow();
-    //     if option.is_none() && current_line < self.code.len() {
-    //         self.read_line(self.code[current_line].trim(), current_line);
-    //         self.current_line.replace(current_line + 1);
-    //         self.vec.borrow_mut().pop_front()
-    //     } else {
-    //         option
-    //     }
-    // }
-    //
-    // fn peek(&self, index: usize) -> Option<&Box<dyn Token>> {
-    //     if self.vec.borrow().len() > index { self.vec.borrow().get(index) } else { None }
-    // }
 }
 
 impl Display for LineReaderLexer {
@@ -157,7 +147,7 @@ impl Display for LineReaderLexer {
         write!(f, "[LineReaderLexer] \n")?;
         write!(f, "\tmatch regex : {} \n", self.match_line_regex)?;
         let mut line_num: usize = 0;
-        let vec_bor = &self.vec.borrow();
+        let vec_bor = &self.vec;
         write!(f, "\tline number : [0]\n")?;
         for token in vec_bor.iter() {
             if line_num != *token.line_number() {
@@ -171,27 +161,19 @@ impl Display for LineReaderLexer {
 }
 
 impl Lexer for LineReaderLexer {
-    fn read(&self) -> Option<Box<dyn Token>> {
-        let option = self.vec.borrow_mut().pop_front();
-        let current_line = *self.current_line.borrow();
-        if option.is_none() && current_line < self.code.len() {
-            self.read_line(self.code[current_line].trim(), current_line);
-            self.current_line.replace(current_line + 1);
-            self.vec.borrow_mut().pop_front()
-        } else {
-            option
-        }
+    fn read(&mut self) -> Option<Box<dyn Token>> {
+        let option = self.vec.pop_front();
+        if option.is_none() { self.read_line().vec.pop_front() } else { option }
     }
 
-    fn peek(&self, index: usize) -> Option<&Box<dyn Token>> {
-        // if self.vec.borrow().len() > index {
-        //     if let Some(token) = &self.vec.borrow().get(index) {
-        //         Some(&token)
-        //     } else {
-        //         None
-        //     }
-        // } else { None }
-        
-        None
+    fn peek(&mut self, index: usize) -> Option<&Box<dyn Token>> {
+        let mut try_read_line = false;
+        {
+            let option = self.vec.get(index);
+            try_read_line = option.is_none();
+        }
+        if try_read_line {
+            self.read_line().vec.get(index)
+        } else { self.vec.get(index) }
     }
 }
