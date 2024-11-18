@@ -51,7 +51,7 @@ pub struct LineReaderLexer {
     match_line_regex: Regex,
     code: Vec<String>,
     current_line: usize,
-    vec: VecDeque<Box<dyn Token>>,
+    token_queue: VecDeque<Box<dyn Token>>,
 }
 
 pub fn match_line_regex_str() -> String {
@@ -74,7 +74,7 @@ impl LineReaderLexer {
             match_line_regex,
             code: code.lines().map(|line| line.to_string()).collect(),
             current_line: 0,
-            vec: VecDeque::new(),
+            token_queue: VecDeque::new(),
         }
     }
 
@@ -101,11 +101,11 @@ impl LineReaderLexer {
                 Some(cap) => {
                     let (next_pos, token_op) = Self::gen_token(&current_line, cap);
                     pos = next_pos;
-                    Self::enqueue_token_op(&mut self.vec, &next_pos, token_op)
+                    Self::enqueue_token_op(&mut self.token_queue, &next_pos, token_op)
                 }
             }
         }
-        Self::enqueue_token(&mut self.vec, TokenEOL::new(current_line.clone()));
+        Self::enqueue_token(&mut self.token_queue, TokenEOL::new(current_line.clone()));
         self.current_line = current_line + 1;
         self
     }
@@ -127,6 +127,9 @@ impl LineReaderLexer {
         (next_index, token_some)
     }
 
+    /// matcher 的不可变借用在 while 循环内持续有效，
+    /// 故此时不能对整个 self 创建可变引用
+    /// 只能对 self 的其他属性创建可变引用
     fn enqueue_token_op(vec: &mut VecDeque<Box<dyn Token>>, next_pos: &usize, token_op: Option<Box<dyn Token>>) -> bool {
         match token_op {
             None => { false }
@@ -147,7 +150,7 @@ impl Display for LineReaderLexer {
         write!(f, "[LineReaderLexer] \n")?;
         write!(f, "\tmatch regex : {} \n", self.match_line_regex)?;
         let mut line_num: usize = 0;
-        let vec_bor = &self.vec;
+        let vec_bor = &self.token_queue;
         write!(f, "\tline number : [0]\n")?;
         for token in vec_bor.iter() {
             if line_num != *token.line_number() {
@@ -162,18 +165,18 @@ impl Display for LineReaderLexer {
 
 impl Lexer for LineReaderLexer {
     fn read(&mut self) -> Option<Box<dyn Token>> {
-        let option = self.vec.pop_front();
-        if option.is_none() { self.read_line().vec.pop_front() } else { option }
+        let option = self.token_queue.pop_front();
+        if option.is_none() { self.read_line().token_queue.pop_front() } else { option }
     }
 
     fn peek(&mut self, index: usize) -> Option<&Box<dyn Token>> {
         let mut try_read_line = false;
         {
-            let option = self.vec.get(index);
+            let option = self.token_queue.get(index);
             try_read_line = option.is_none();
         }
         if try_read_line {
-            self.read_line().vec.get(index)
-        } else { self.vec.get(index) }
+            self.read_line().token_queue.get(index)
+        } else { self.token_queue.get(index) }
     }
 }
