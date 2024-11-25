@@ -149,8 +149,18 @@ mod line_reader_lexer_text {
     #[test]
     pub fn mul_line_peek_test() {
         let test_code = r#"
-           i=j>0 || j = 0 ? "中文111111":"中文1222222"
-            size = j.len()
+            even = 0
+            odd = 0
+            i  = 1
+            while i < 10 {
+                if i % 2 == 0 {
+                    even = even + i
+                }else {
+                    odd = odd + i
+                }
+                i = i + 1
+            }
+            even + odd
         "#;
         let mut lexer = LineReaderLexer::new(test_code.to_string());
         // while let Some(token_box) = lexer.read() {
@@ -163,13 +173,16 @@ mod line_reader_lexer_text {
             }
         }
 
+        println!("当前已解析token : \n{}",lexer);
+
         println!(" 顺序预读取测试： ");
-        for i in 0.. 30 {
+        for i in 0.. 60 {
             if let Some(token_box) = lexer.peek(i) {
                 println!("{:?}", token_box.value());
             }else{
                 println!("没有更多 token ...")
             }
         }
+        println!("当前已解析token : \n{}",lexer);
     }
 }
