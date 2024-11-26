@@ -1,7 +1,8 @@
 use std::fmt::Debug;
 use crate::lexer::lexer::Lexer;
 use crate::token::Token;
-use crate::ast::ast_node::*;
+use crate::ast::ast_leaf::*;
+use crate::ast::ast_tree::AstTree;
 use crate::token::token_number::TokenNumber;
 
 mod lexer;

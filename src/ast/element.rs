@@ -1,4 +1,4 @@
-use crate::ast::ast_node::AstTree;
+use crate::ast::ast_tree::AstTree;
 use crate::lexer::lexer::Lexer;
 
 pub trait Element {
