@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use crate::lexer::lexer::Lexer;
 use crate::token::Token;
 use crate::ast::ast_leaf::*;
+use crate::ast::ast_list::BinaryExpr;
 use crate::ast::ast_tree::AstTree;
 use crate::token::token_number::TokenNumber;
 
@@ -23,10 +24,7 @@ fn main() {
     let token_num_2 = TokenNumber::new(1, 2);
     let literal = NumberLiteral::new(token_num_2);
     vec.push(literal);
-    //
-    //
-    // println!("{:?}", vec);
-    //
-    // literal.child(0);
-    // leaf.child(0);
+
+    let expr = BinaryExpr::new(Vec::new());
+    println!("{}",expr.location())
 }

@@ -1,10 +1,10 @@
-use std::ops::Deref;
-use crate::{ast_leaf_for, ast_leaf_new_for};
 use crate::ast::ast_tree::AstTree;
-use crate::token::Token;
 use crate::token::token_identifier::TokenIdentifier;
 use crate::token::token_number::TokenNumber;
 use crate::token::token_string::TokenText;
+use crate::token::Token;
+use crate::{ast_leaf_impl_for, ast_leaf_new_for};
+use std::slice::Iter;
 
 pub struct AstLeaf<T: Token> {
     token: Box<T>,
@@ -17,7 +17,7 @@ impl<T: Token> AstLeaf<T> {
 }
 
 impl<T: Token> AstTree for AstLeaf<T> {
-    fn child(&self, index: usize) -> Option<Box<dyn AstTree>> {
+    fn child(&self, index: usize) -> Option<&Box<dyn AstTree>> {
         None
     }
 
@@ -25,8 +25,9 @@ impl<T: Token> AstTree for AstLeaf<T> {
         0
     }
 
-    fn children(&self) -> Option<Box<dyn AstTree>> {
-        None
+    fn children(&self) -> Iter<Box<dyn AstTree>> {
+        let empty_slice: &[Box<dyn AstTree>] = &[];
+        empty_slice.iter()
     }
 
     fn location(&self) -> String {
@@ -42,7 +43,7 @@ impl NumberLiteral {
     ast_leaf_new_for! {NumberLiteral,TokenNumber}
 }
 
-ast_leaf_for! {NumberLiteral,TokenNumber}
+ast_leaf_impl_for! {NumberLiteral,TokenNumber}
 
 pub struct IdentifierLiteral {
     ast_leaf: Box<AstLeaf<TokenIdentifier>>,
@@ -52,7 +53,7 @@ impl IdentifierLiteral {
     ast_leaf_new_for! {IdentifierLiteral,TokenIdentifier}
 }
 
-ast_leaf_for! {IdentifierLiteral,TokenIdentifier}
+ast_leaf_impl_for! {IdentifierLiteral,TokenIdentifier}
 
 struct StringLiteral {
     ast_leaf: Box<AstLeaf<TokenText>>,
@@ -62,6 +63,6 @@ impl StringLiteral {
     ast_leaf_new_for! {StringLiteral,TokenText}
 }
 
-ast_leaf_for! {StringLiteral,TokenText}
+ast_leaf_impl_for! {StringLiteral,TokenText}
 
 
