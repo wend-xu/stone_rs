@@ -1,4 +1,4 @@
-pub mod macros_ast;
+pub mod ast_macros;
 pub mod parser;
 pub mod element;
 pub mod ast_leaf;
