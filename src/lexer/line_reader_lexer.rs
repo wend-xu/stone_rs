@@ -33,6 +33,7 @@ impl MatchNames {
             "number" => MatchNames::Number,
             "string" => MatchNames::String,
             "identifier" => MatchNames::Identifier,
+            /// 未知的字面量类型不应该存在，直接 panic
             _ => panic!("[MatchNames] not exist type literal is {literal}"),
         }
     }
