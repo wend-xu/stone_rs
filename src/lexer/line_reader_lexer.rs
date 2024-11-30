@@ -13,6 +13,8 @@ pub const MATCH_COMMENT: &str = "//.";
 pub const MATCH_IDENTIFIER: &str = r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[+\-*/%=\\|&,.!?(){}\[\]><:]"#;
 pub const MATCH_NUMBER: &str = r"[0-9]+";
 pub const MATCH_STRING: &str = r#""((?:\\"|\\\\|\\n|[^"\\])*)""#;
+
+// todo 融合进  MatchNames
 pub const MATCH_NAMES: [&str; 4] = ["comment", "number", "string", "identifier"];
 
 pub enum MatchNames {
@@ -40,10 +42,10 @@ impl MatchNames {
 
     fn literal(&self) -> &str {
         match self {
-            MatchNames::Comment => { MATCH_NAMES[0] }
-            MatchNames::Number => { MATCH_NAMES[1] }
-            MatchNames::String => { MATCH_NAMES[2] }
-            MatchNames::Identifier => { MATCH_NAMES[3] }
+            MatchNames::Comment => { "comment" }
+            MatchNames::Number => { "number" }
+            MatchNames::String => { "string" }
+            MatchNames::Identifier => { "identifier" }
         }
     }
 }

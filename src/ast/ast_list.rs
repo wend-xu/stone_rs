@@ -3,12 +3,12 @@ use crate::{ast_list_impl_for, ast_list_new_for,generate};
 use std::fmt::Debug;
 use std::slice::Iter;
 
-struct AstList {
+pub struct AstList {
     children: Vec<Box<dyn AstTree>>,
 }
 
 impl AstList {
-    fn new(children: Vec<Box<dyn AstTree>>) -> AstList {
+    pub fn new(children: Vec<Box<dyn AstTree>>) -> AstList {
         AstList {
             children
         }
