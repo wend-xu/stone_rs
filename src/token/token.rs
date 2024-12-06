@@ -1,14 +1,15 @@
 use std::fmt::Debug;
 use std::ops::Deref;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum TokenValue{
     EOF,
     EOL,
     IDENTIFIER(String),
     NUMBER(isize),
-    TEXT(String),
+    String(String),
 }
+
 
 #[derive(Debug)]
 pub struct TokenLine {

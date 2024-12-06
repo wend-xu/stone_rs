@@ -1,13 +1,14 @@
-use std::any::Any;
-use std::ops::Deref;
+use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral, StringLiteral};
 use crate::ast::ast_list::AstList;
 use crate::ast::ast_tree::AstTree;
 use crate::ast::parser::Parser;
+use crate::ast_impl_element_terminal;
 use crate::lexer::lexer::Lexer;
-use crate::token::Token;
-use crate::util::type_util::struct_is_type;
+use crate::token::{Token, TokenValue};
+use std::any::TypeId;
+use std::collections::HashMap;
+use std::iter::Map;
 use std::rc::Rc;
-use crate::token::token_identifier::TokenIdentifier;
 
 pub trait Element {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String>;
@@ -16,7 +17,7 @@ pub trait Element {
 }
 
 
-struct Tree {
+pub struct Tree {
     parser: Rc<Parser>,
 }
 
@@ -39,7 +40,7 @@ impl Element for Tree {
 }
 
 /// todo 完成后需要确认Rc指针的使用是否造成副作用如内存泄漏
-struct OrTree {
+pub struct OrTree {
     parser_vec: Vec<Rc<Parser>>,
 }
 
@@ -78,7 +79,7 @@ impl Element for OrTree {
 }
 
 
-struct Repeat {
+pub struct Repeat {
     parser: Rc<Parser>,
     only_once: bool,
 }
@@ -102,7 +103,7 @@ impl Element for Repeat {
             /// 若是将  (";" | EOL) 作为重复的结尾，一样可以实现匹配，相对的就是匹配完块后不进入while循环的情况
             ///
             /// 故进入while 循环后的判定条件：  不为AstList(不可执行无意义) 子节点是数为0(实际未匹配可执行内容)
-            if !struct_is_type::<AstList>(&parse_res) || parse_res.num_children() > 0 {
+            if parse_res.actual_type_id() == TypeId::of::<AstList>() || parse_res.num_children() > 0 {
                 res.push(parse_res);
             }
             if self.only_once {
@@ -117,20 +118,98 @@ impl Element for Repeat {
     }
 }
 
-struct IdToken;
+pub struct IdToken;
+ast_impl_element_terminal!(IdToken,IdentifierLiteral);
+// impl Element for IdToken {
+//     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
+//         let read = lexer.read().unwrap();
+//         res.push(NumberLiteral::new(read));
+//         Ok(())
+//     }
+//
+//     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
+//         if let Some(box_token) = lexer.peek(0) {
+//             NumberLiteral::is_match(box_token)
+//         } else { false }
+//     }
+// }
 
-impl Element for IdToken {
+pub struct StrToken;
+ast_impl_element_terminal!(StrToken,StringLiteral);
+
+pub struct NumToken;
+ast_impl_element_terminal!(NumToken,NumberLiteral);
+
+#[derive(Debug)]
+pub struct Leaf {
+    tokens: Vec<TokenValue>,
+}
+
+impl Leaf {
+    pub fn new(leaf_literal: Vec<&str>) -> Self {
+        Leaf {
+            tokens: leaf_literal.iter().map(|str| TokenValue::IDENTIFIER(str.to_string())).collect()
+        }
+    }
+}
+
+impl Element for Leaf {
+    fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
+        res.push(AstLeaf::new(lexer.read().unwrap()));
+        Ok(())
+    }
+
+    fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
+        if let Some(token_value) = self.tokens.get(0) {
+            self.tokens.contains(token_value)
+        } else { false }
+    }
+}
+
+pub struct Skip {
+    leaf: Leaf,
+}
+
+impl Skip {
+    pub fn new(leaf_literal: Vec<&str>) -> Self {
+        Skip {
+            leaf: Leaf::new(leaf_literal)
+        }
+    }
+}
+
+impl Element for Skip {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
         Ok(())
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
-        // match lexer.peek(0) {
-        //     None => { false }
-        //     Some(box_token) => {
-        //         struct_is_type::<TokenIdentifier>(box_token.deref())
-        //     }
-        // }
-        false
+        self.leaf.is_match(lexer)
     }
+}
+
+struct Precedence {
+    value: usize,
+    left_assoc: bool,
+}
+
+struct Operators {
+    operators: HashMap<String, Precedence>,
+}
+
+impl Operators {
+    fn new() -> Self {
+        Operators {
+            operators: HashMap::new(),
+        }
+    }
+
+    fn add(&mut self, name: &str, precedence:usize, left_assoc: bool) -> &Self {
+        self.operators.insert(name.to_string(),Precedence{value:precedence,left_assoc});
+        self
+    }
+}
+
+struct Expr{
+
 }

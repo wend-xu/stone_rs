@@ -2,25 +2,25 @@ use crate::token::token::TokenLine;
 use crate::token::{Token, TokenValue};
 
 #[derive(Debug)]
-pub struct TokenText {
+pub struct TokenString {
     token_base: TokenLine,
     text: TokenValue,
 }
 
 
-impl TokenText {
-    pub fn new(line_number: usize, str: &str) -> Box<TokenText> {
+impl TokenString {
+    pub fn new(line_number: usize, str: &str) -> Box<TokenString> {
         Box::new(
-            TokenText {
+            TokenString {
                 token_base: TokenLine::new(line_number),
-                text: TokenValue::TEXT(str.to_string()),
+                text: TokenValue::String(str.to_string()),
             }
         )
     }
 }
 
 
-impl Token for TokenText {
+impl Token for TokenString {
     fn value(&self) -> &TokenValue {
         &self.text
     }

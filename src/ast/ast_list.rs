@@ -1,3 +1,4 @@
+use std::any::TypeId;
 use crate::ast::ast_tree::AstTree;
 use crate::{ast_list_impl_for, ast_list_new_for,generate};
 use std::fmt::Debug;
@@ -30,6 +31,10 @@ impl AstTree  for AstList {
 
     fn location(&self) -> String {
         "todo ...".to_string()
+    }
+
+    fn actual_type_id(&self) -> TypeId {
+        TypeId::of::<AstList>()
     }
 }
 

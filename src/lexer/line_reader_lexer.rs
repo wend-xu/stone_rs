@@ -2,7 +2,7 @@ use crate::lexer::lexer::Lexer;
 use crate::token::token_end::TokenEOL;
 use crate::token::token_identifier::TokenIdentifier;
 use crate::token::token_number::TokenNumber;
-use crate::token::token_string::TokenText;
+use crate::token::token_string::TokenString;
 use crate::token::Token;
 use crate::util::regex_util::get_from_captures;
 use regex::{Captures, Regex};
@@ -123,7 +123,7 @@ impl LineReaderLexer {
                 match MatchNames::of_literal(&name) {
                     MatchNames::Comment => { None }
                     MatchNames::Number => { Some(TokenNumber::new_literal(line_number_clone, token_literal)) }
-                    MatchNames::String => { Some(TokenText::new(line_number_clone, token_literal)) }
+                    MatchNames::String => { Some(TokenString::new(line_number_clone, token_literal)) }
                     MatchNames::Identifier => { Some(TokenIdentifier::new(line_number_clone, token_literal)) }
                 }
             } else { None };

@@ -1,3 +1,4 @@
+use std::any::TypeId;
 use std::slice::Iter;
 
 pub trait AstTree {
@@ -8,4 +9,6 @@ pub trait AstTree {
     fn children(&self) -> Iter<Box<dyn AstTree>>;
 
     fn location(&self) -> String;
+
+    fn actual_type_id(&self) -> TypeId;
 }

@@ -1,12 +1,7 @@
 #[cfg(test)]
 mod token_tests {
     use regex::Regex;
-    use crate::token::Token;
-    // use crate::token::token_end::TokenEOL;
-    use crate::token::token_identifier::TokenIdentifier;
-
-    use crate::lexer::line_reader_lexer;
-
+    use crate::token::TokenValue;
 
     #[test]
     fn code_test() {
@@ -115,6 +110,23 @@ mod token_tests {
 
     #[test]
     fn line_reader_regex_test() {
+        // let token_str = TokenStr {
+        //     line_number: 1,
+        //     value: "ddddd".to_string()
+        // };
+        //
+        // let vec:Vec<dyn Token> = vec![];
+    }
 
+    # [test]
+    fn token_eq_test() {
+        let identifier_1 = TokenValue::IDENTIFIER("abc".to_string());
+        let identifier_2 = TokenValue::IDENTIFIER("abc".to_string());
+        let identifier_3 = TokenValue::IDENTIFIER("abcd".to_string());
+        let identifier_4 = TokenValue::String("abcd".to_string());
+
+        println!("eq? {}", (identifier_1 == identifier_2));
+        println!("eq? {}", (identifier_1 == identifier_3));
+        println!("eq? {}", (identifier_3 == identifier_4));
     }
 }

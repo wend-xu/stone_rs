@@ -1,22 +1,24 @@
 use crate::ast::ast_tree::AstTree;
-use crate::token::token_identifier::TokenIdentifier;
-use crate::token::token_number::TokenNumber;
-use crate::token::token_string::TokenText;
-use crate::token::Token;
+use crate::token::{Token, TokenValue};
 use crate::{ast_leaf_impl_for, ast_leaf_new_for};
+use std::any::TypeId;
 use std::slice::Iter;
 
-pub struct AstLeaf<T: Token> {
-    token: Box<T>,
+pub struct AstLeaf {
+    token: Box<dyn Token>,
 }
 
-impl<T: Token> AstLeaf<T> {
-    pub fn new(token: Box<T>) -> Box<AstLeaf<T>> {
+impl AstLeaf {
+    pub fn new(token: Box<dyn Token>) -> Box<Self> {
         Box::new(AstLeaf { token })
+    }
+
+    pub fn new_un_ref(token: Box<dyn Token>) -> Self {
+        AstLeaf { token }
     }
 }
 
-impl<T: Token> AstTree for AstLeaf<T> {
+impl AstTree for AstLeaf {
     fn child(&self, index: usize) -> Option<&Box<dyn AstTree>> {
         None
     }
@@ -31,36 +33,40 @@ impl<T: Token> AstTree for AstLeaf<T> {
     }
 
     fn location(&self) -> String {
-        format!("<location:{}>", self.token.line_number())
+        format!("<location line_num:{} , value :{:?}>", self.token.line_number() ,self.token.value())
+    }
+
+    fn actual_type_id(&self) -> TypeId {
+        panic!("un support in node type [AstLeaf]")
     }
 }
 
 pub struct NumberLiteral {
-    ast_leaf: Box<AstLeaf<TokenNumber>>,
+    ast_leaf:AstLeaf,
 }
 
 impl NumberLiteral {
-    ast_leaf_new_for! {NumberLiteral,TokenNumber}
+    ast_leaf_new_for! {NumberLiteral,NUMBER }
 }
 
 ast_leaf_impl_for! {NumberLiteral,TokenNumber}
 
 pub struct IdentifierLiteral {
-    ast_leaf: Box<AstLeaf<TokenIdentifier>>,
+    ast_leaf:AstLeaf,
 }
 
 impl IdentifierLiteral {
-    ast_leaf_new_for! {IdentifierLiteral,TokenIdentifier}
+    ast_leaf_new_for! {IdentifierLiteral,IDENTIFIER }
 }
 
 ast_leaf_impl_for! {IdentifierLiteral,TokenIdentifier}
 
-struct StringLiteral {
-    ast_leaf: Box<AstLeaf<TokenText>>,
+pub struct StringLiteral {
+    ast_leaf: AstLeaf,
 }
 
 impl StringLiteral {
-    ast_leaf_new_for! {StringLiteral,TokenText}
+    ast_leaf_new_for! {StringLiteral,String }
 }
 
 ast_leaf_impl_for! {StringLiteral,TokenText}
