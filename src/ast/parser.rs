@@ -1,4 +1,4 @@
-use crate::ast::ast_tree::AstTree;
+use crate::ast::ast_tree::{AstFactory, AstTree};
 use crate::ast::element::Element;
 use crate::lexer::lexer::Lexer;
 
@@ -6,9 +6,15 @@ pub struct Parser {
     elements: Vec<Box<dyn Element>>,
 }
 
-pub fn ast_node_factory(res: &mut Vec<Box<dyn AstTree>>) -> Box<dyn AstTree> {
+pub fn ast_node_factory(res: &mut Vec<Box<dyn AstTree>>) ->  Box<dyn AstTree> {
     todo!()
 }
+
+// pub fn ast_node_factory_gen<T:AstTree>(res: &mut Vec<Box<dyn AstTree>>) ->  Box<dyn AstTree> {
+//     type tree_type = T;
+//     let option = tree_type::gen();
+//     todo!()
+// }
 
 impl Parser {
     pub fn parse(&self, lexer: &mut dyn Lexer) -> Box<dyn AstTree> {
