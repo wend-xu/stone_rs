@@ -1,6 +1,6 @@
 use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral, StringLiteral};
 use crate::ast::ast_list::AstList;
-use crate::ast::ast_tree::AstTree;
+use crate::ast::ast_tree::{AstFactory, AstTree};
 use crate::ast::parser::{ast_node_factory, Parser};
 use crate::ast_impl_element_terminal;
 use crate::lexer::lexer::Lexer;
@@ -14,6 +14,8 @@ pub trait Element {
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool { false }
 }
+
+fn is_ok() {}
 
 
 pub struct Tree {
@@ -29,6 +31,13 @@ impl Tree {
 
 impl Element for Tree {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
+        // match self.parser.parse(lexer) {
+        //     Ok(tree_node) => {
+        //         res.push(tree_node);
+        //         Ok(())
+        //     }
+        //     Err(err_msg) => { Err(err_msg) }
+        // }
         res.push(self.parser.parse(lexer));
         Ok(())
     }
@@ -38,13 +47,12 @@ impl Element for Tree {
     }
 }
 
-/// todo 完成后需要确认Rc指针的使用是否造成副作用如内存泄漏
 pub struct OrTree {
     parser_vec: Vec<Rc<Parser>>,
 }
 
 impl OrTree {
-    fn new(parser_vec: Vec<Rc<Parser>>) -> Self {
+    pub fn new(parser_vec: Vec<Rc<Parser>>) -> Self {
         OrTree { parser_vec }
     }
 
@@ -126,6 +134,8 @@ ast_impl_element_terminal!(StrToken,StringLiteral);
 pub struct NumToken;
 ast_impl_element_terminal!(NumToken,NumberLiteral);
 
+
+
 #[derive(Debug)]
 pub struct Leaf {
     tokens: Vec<TokenValue>,
@@ -196,12 +206,12 @@ impl Precedence {
     }
 }
 
-struct Operators {
+pub struct Operators {
     operators: HashMap<String, Rc<Precedence>>,
 }
 
 impl Operators {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Operators {
             operators: HashMap::new(),
         }
@@ -220,15 +230,15 @@ impl Operators {
     }
 }
 
-struct Expr {
+pub struct Expr<F: AstFactory> {
     factor: Rc<Parser>,
-    expr: Box<dyn AstTree>,
-    operators: Operators,
+    operators: Rc<Operators>,
+    factory: Box<F>,
 }
 
-impl Expr {
-    fn new(parser: Rc<Parser>, expr: Box<dyn AstTree>, operators: Operators) -> Self {
-        Expr { factor: parser, expr, operators }
+impl<F: AstFactory> Expr<F> {
+    pub fn new(factor: Rc<Parser>, operators: Rc<Operators>, factory: Box<F>) -> Self {
+        Expr { factor, operators, factory }
     }
 
     // 此处为 peek，因为优先级问题，同一运算符可能被多次读取
@@ -254,7 +264,7 @@ impl Expr {
         let operator = AstLeaf::new(lexer.read().unwrap());
         let mut res = vec![left, operator];
 
-        let mut right = self.factor.parse(lexer) ;
+        let mut right = self.factor.parse(lexer);
         while let Some(ref op) = self._next_operator(lexer) {
             let do_shift = self._right_is_expr(precedence.as_ref(), op.as_ref());
             right = if do_shift { self._do_shift(lexer, right, precedence) } else { right }
@@ -308,7 +318,7 @@ impl Expr {
 /// right =  ((((((a,*,3),/,b),*,6),+,2),+,((d,/,e),*,3))  next_op = None list.add(right)
 /// ```
 
-impl Element for Expr {
+impl<F: AstFactory> Element for Expr<F> {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
         let mut right = self.factor.parse(lexer);
         while let Some(precedence) = self._next_operator(lexer) {

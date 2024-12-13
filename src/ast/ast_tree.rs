@@ -1,7 +1,6 @@
+use crate::ast::ast_list::BinaryExpr;
 use std::any::TypeId;
 use std::slice::Iter;
-use crate::ast::ast_leaf::AstLeaf;
-use crate::ast::ast_list::BinaryExpr;
 
 pub trait AstTree {
     fn child(&self, index: usize) -> Option<&Box<dyn AstTree>>;
@@ -15,13 +14,18 @@ pub trait AstTree {
     fn actual_type_id(&self) -> TypeId;
 }
 
-pub trait AstFactory<T:AstTree>{
+pub trait AstFactory{
+    type Item;
 
-    fn make(&self,res: Vec<Box<dyn AstTree>>) -> T;
+    fn make(&self,res: Vec<Box<dyn AstTree>>) -> Self::Item;
 }
 
-impl AstFactory<BinaryExpr> for BinaryExpr {
+pub struct BinaryExprFactory{}
+
+impl AstFactory for BinaryExprFactory {
+    type Item = BinaryExpr;
     fn make(&self,res: Vec<Box<dyn AstTree>>) -> BinaryExpr {
         BinaryExpr::new(res)
     }
 }
+

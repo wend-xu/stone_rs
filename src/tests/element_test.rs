@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod element_tests {
-    use std::any::{Any, TypeId};
     use crate::ast::ast_list::AstList;
-    use crate::ast::ast_tree::AstTree;
-    use crate::ast::element::{Element, IdToken, Leaf};
+    use crate::ast::ast_tree::{AstFactory, AstTree, BinaryExprFactory};
+    use crate::ast::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree, Skip, StrToken};
+    use crate::ast::parser::Parser;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
-    use crate::token::Token;
-    use crate::util::type_util::struct_is_type;
+    use std::any::{Any, TypeId};
+    use std::rc::Rc;
+    use crate::lexer::lexer::Lexer;
 
     #[test]
     fn match_test() {
@@ -39,5 +40,42 @@ mod element_tests {
         let code = "(".to_string();
         let mut lexer = LineReaderLexer::new(code);
         println!("{}", leaf.is_match(&mut lexer));
+    }
+
+    #[test]
+    fn parser_with_generic(){
+        let factor = Rc::new(Parser::rule());
+        let operators = Rc::new( Operators::new());
+        let x = Box::new(BinaryExprFactory{});
+
+        // Parser::expr(BinaryExprFactory{},factor,operators);
+        // let x1 = Parser::rule().expr::<BinaryExprFactory>(BinaryExprFactory {}, factor, operators);
+        // let expr = Rc::new(x1);
+        //
+        // let parser = Parser::rule().or(vec![&expr]);
+
+        let mut test =Test{vec:vec![]};
+        test.add_not_generic(Box::new(OrTree::new(vec![])));
+        let num_token = NumToken;
+        let mut lexer = LineReaderLexer::new("111".to_string());
+        let ref_num_token = &NumToken;
+        // println!("match {}",num_token.is_match(&mut lexer));
+        println!("match {}",ref_num_token.is_match(&mut lexer));
+    }
+
+    struct Test{
+        vec:Vec<Box<dyn Element>>,
+    }
+
+    impl Test {
+        pub fn add_not_generic(mut self,ele:Box<dyn Element>) -> Self{
+            self.vec.push(ele);
+            self
+        }
+
+        pub fn add_with_generic<E:Element+'static>(mut self,e:Box<E>)->Self{
+            self.vec.push(e);
+            self
+        }
     }
 }
