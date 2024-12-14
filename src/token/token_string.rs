@@ -13,7 +13,7 @@ impl TokenString {
         Box::new(
             TokenString {
                 token_base: TokenLine::new(line_number),
-                text: TokenValue::String(str.to_string()),
+                text: TokenValue::StringVal(str.to_string()),
             }
         )
     }

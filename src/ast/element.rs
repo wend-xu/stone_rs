@@ -15,8 +15,6 @@ pub trait Element {
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool { false }
 }
 
-fn is_ok() {}
-
 
 pub struct Tree {
     parser: Rc<Parser>,
@@ -31,14 +29,8 @@ impl Tree {
 
 impl Element for Tree {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        // match self.parser.parse(lexer) {
-        //     Ok(tree_node) => {
-        //         res.push(tree_node);
-        //         Ok(())
-        //     }
-        //     Err(err_msg) => { Err(err_msg) }
-        // }
-        res.push(self.parser.parse(lexer));
+        let parse_res = self.parser.parse(lexer)?;
+        res.push(parse_res);
         Ok(())
     }
 
@@ -71,13 +63,16 @@ impl OrTree {
 impl Element for OrTree {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
         let choose_tree = self.choose(lexer);
-        if let Some(parser) = choose_tree {
-            res.push(parser.parse(lexer));
-            Ok(())
+        let result = if let Some(parser) = choose_tree {
+            parser.parse(lexer)
         } else {
             let next_token = lexer.peek(0).unwrap();
             Err(format!("OrTree::choose failed, no parser found, token : [{} : {:?} ]", next_token.line_number(), next_token.value()))
-        }
+        };
+
+        let tree_node = result?;
+        res.push(tree_node);
+        Ok(())
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
@@ -100,7 +95,6 @@ impl Repeat {
 impl Element for Repeat {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
         while self.parser.is_match(lexer) {
-            let parse_res = self.parser.parse(lexer);
             /// parser 出现AstList则是factory构建ast节点的时候没有指定类型，实际上没有执行的功能
             /// 这种情况确实可以忽略，因为本身就是无法执行的，在ast树上也没意义
             ///
@@ -110,10 +104,11 @@ impl Element for Repeat {
             /// 若是将  (";" | EOL) 作为重复的结尾，一样可以实现匹配，相对的就是匹配完块后不进入while循环的情况
             ///
             /// 故进入while 循环后的判定条件：  不为AstList(不可执行无意义) 子节点是数为0(实际未匹配可执行内容)
-            if parse_res.actual_type_id() == TypeId::of::<AstList>() || parse_res.num_children() > 0 {
-                res.push(parse_res);
+            let tree_node = self.parser.parse(lexer)?;
+            if tree_node.actual_type_id() == TypeId::of::<AstList>() || tree_node.num_children() > 0 {
+                res.push(tree_node);
             }
-            if self.only_once {
+            if self.only_once{
                 break;
             }
         }
@@ -156,8 +151,8 @@ impl Element for Leaf {
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
-        if let Some(token_value) = self.tokens.get(0) {
-            self.tokens.contains(token_value)
+        if let Some(token_value) = lexer.peek(0) {
+            self.tokens.contains(token_value.value())
         } else { false }
     }
 }
@@ -260,17 +255,17 @@ impl<F: AstFactory> Expr<F> {
     }
 
     /// 预读运算符，根据预读运算符判定是继续往下 shift 还是返回
-    fn _do_shift(&self, lexer: &mut dyn Lexer, left: Box<dyn AstTree>, precedence: &Rc<Precedence>) -> Box<dyn AstTree> {
+    fn _do_shift(&self, lexer: &mut dyn Lexer, left: Box<dyn AstTree>, precedence: &Rc<Precedence>) -> Result<Box<dyn AstTree>, String> {
         let operator = AstLeaf::new(lexer.read().unwrap());
         let mut res = vec![left, operator];
 
-        let mut right = self.factor.parse(lexer);
+        let mut right = self.factor.parse(lexer)?;
         while let Some(ref op) = self._next_operator(lexer) {
             let do_shift = self._right_is_expr(precedence.as_ref(), op.as_ref());
-            right = if do_shift { self._do_shift(lexer, right, precedence) } else { right }
+            right = if do_shift { self._do_shift(lexer, right, precedence)? } else { right }
         }
         res.push(right);
-        ast_node_factory(&mut res)
+        Ok(ast_node_factory(&mut res))
     }
 }
 
@@ -320,9 +315,9 @@ impl<F: AstFactory> Expr<F> {
 
 impl<F: AstFactory> Element for Expr<F> {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        let mut right = self.factor.parse(lexer);
+        let mut right = self.factor.parse(lexer)?;
         while let Some(precedence) = self._next_operator(lexer) {
-            right = self._do_shift(lexer, right, &precedence);
+            right = self._do_shift(lexer, right, &precedence)?;
         }
         res.push(right);
         Ok(())

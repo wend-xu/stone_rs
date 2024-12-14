@@ -123,7 +123,7 @@ mod token_tests {
         let identifier_1 = TokenValue::IDENTIFIER("abc".to_string());
         let identifier_2 = TokenValue::IDENTIFIER("abc".to_string());
         let identifier_3 = TokenValue::IDENTIFIER("abcd".to_string());
-        let identifier_4 = TokenValue::String("abcd".to_string());
+        let identifier_4 = TokenValue::StringVal("abcd".to_string());
 
         println!("eq? {}", (identifier_1 == identifier_2));
         println!("eq? {}", (identifier_1 == identifier_3));

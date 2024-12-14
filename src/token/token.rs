@@ -7,7 +7,7 @@ pub enum TokenValue{
     EOL,
     IDENTIFIER(String),
     NUMBER(isize),
-    String(String),
+    StringVal(String),
 }
 
 

@@ -33,12 +33,17 @@ impl Parser {
         }
     }
 
-    pub fn parse(&self, lexer: &mut dyn Lexer) -> Box<dyn AstTree>{
+    pub fn parse(&self, lexer: &mut dyn Lexer) -> Result<Box<dyn AstTree>,String>{
         let mut res: Vec<Box<dyn AstTree>> = vec![];
+        let mut err: Option<String> = None;
         for element in &self.elements {
-            element.parse(lexer, &mut res).expect("TODO: panic message");
+            if err.is_some() { break }
+            match element.parse(lexer, &mut res){
+                Ok(_) => {}
+                Err(err_msg) => { err = Some(err_msg) }
+            }
         }
-        ast_node_factory(&mut res)
+        if err.is_none() { Ok(ast_node_factory(&mut res)) } else { Err(err.unwrap()) }
     }
 
     pub fn is_match(&self, lexer: &mut dyn Lexer) -> bool {

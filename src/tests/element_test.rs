@@ -78,4 +78,23 @@ mod element_tests {
             self
         }
     }
+
+    fn return_result(i:usize) -> Result<String,String>{
+        if i%5 == 0 {  Err("i % 5 not 0".to_string()) } else { Ok(format!("i is :{}", i)) }
+    }
+
+    fn for_result() -> Result<String,String>{
+        for i in 1..10{
+            println!("for {}",return_result(i)?);
+        }
+        Ok("loop finish".to_string())
+    }
+
+    #[test]
+    fn result_test(){
+       match for_result() {
+           Ok(ok_msg) => {println!("{}",ok_msg)},
+           Err(err_msg) => {println!("{}", err_msg);}
+       };
+    }
 }

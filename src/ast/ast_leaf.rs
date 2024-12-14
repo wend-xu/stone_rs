@@ -66,7 +66,7 @@ pub struct StringLiteral {
 }
 
 impl StringLiteral {
-    ast_leaf_new_for! {StringLiteral,String }
+    ast_leaf_new_for! {StringLiteral,StringVal }
 }
 
 ast_leaf_impl_for! {StringLiteral,TokenText}
