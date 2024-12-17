@@ -1,36 +1,28 @@
-use std::rc::Rc;
-use crate::ast::ast_tree::{AstFactory, AstTree, BinaryExprFactory};
+use crate::ast::ast_tree::{ AstTree};
 use crate::ast::element::{Element, Expr, Operators, OrTree};
 use crate::lexer::lexer::Lexer;
+use std::rc::Rc;
+use crate::ast::factory::{AstFactory, AstListFactory};
 
 pub struct Parser {
+    factory:Box<dyn AstFactory>,
     elements: Vec<Box<dyn Element>>,
 }
 
-pub fn ast_node_factory(res: &mut Vec<Box<dyn AstTree>>) -> Box<dyn AstTree> {
-    todo!()
-}
-
-// pub fn ast_node_factory_gen<T:AstTree>(res: &mut Vec<Box<dyn AstTree>>) ->  Box<dyn AstTree> {
-//     type tree_type = T;
-//     let option = tree_type::gen();
-//     todo!()
-// }
-
 impl Parser {
     pub fn new() -> Parser {
-        Parser { elements: vec![] }
+        let factory = AstListFactory::new();
+        Parser {factory, elements: vec![] }
     }
 
     pub fn new_with_elements(elements: Vec<Box<dyn Element>>) -> Parser {
-        Parser { elements }
+        let factory = AstListFactory::new();
+        Parser {factory, elements }
     }
 
 
     pub fn rule() -> Self {
-        Parser {
-            elements: vec![]
-        }
+        Self::new()
     }
 
     pub fn parse(&self, lexer: &mut dyn Lexer) -> Result<Box<dyn AstTree>,String>{
@@ -43,7 +35,7 @@ impl Parser {
                 Err(err_msg) => { err = Some(err_msg) }
             }
         }
-        if err.is_none() { Ok(ast_node_factory(&mut res)) } else { Err(err.unwrap()) }
+        if err.is_none() { Ok(self.factory.make(res)) } else { Err(err.unwrap()) }
     }
 
     pub fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
@@ -57,8 +49,8 @@ impl Parser {
     // rust 无法限制 F 对应的实现不能为引用类型 ，如 实现  impl AstFactory for &BinaryExprFactory
     // 若传入的是对引用的实现，不添加生命周期标识，可能会造成悬垂指针，这是rust编译器所不允许的
     // 若添加标识，则至少是与self的生命周期一般长
-    pub fn expr<F: AstFactory+'static>(mut self,f: F, factor: Rc<Parser>, operators: Rc<Operators>) -> Self {
-        let expr = Expr::new(Rc::clone(&factor), operators, Box::new(f));
+    pub fn expr(mut self, f: Box<dyn AstFactory>, factor: Rc<Parser>, operators: Rc<Operators>) -> Self {
+        let expr = Expr::new(Rc::clone(&factor), operators,f);
         self.elements.push(Box::new(expr));
         self
     }

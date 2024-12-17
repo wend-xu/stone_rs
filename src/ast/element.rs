@@ -1,13 +1,14 @@
 use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral, StringLiteral};
 use crate::ast::ast_list::AstList;
-use crate::ast::ast_tree::{AstFactory, AstTree};
-use crate::ast::parser::{ast_node_factory, Parser};
+use crate::ast::ast_tree::{AstTree};
+use crate::ast::parser::{Parser};
 use crate::ast_impl_element_terminal;
 use crate::lexer::lexer::Lexer;
 use crate::token::{Token, TokenValue};
 use std::any::TypeId;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::ast::factory::AstFactory;
 
 pub trait Element {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String>;
@@ -108,7 +109,7 @@ impl Element for Repeat {
             if tree_node.actual_type_id() == TypeId::of::<AstList>() || tree_node.num_children() > 0 {
                 res.push(tree_node);
             }
-            if self.only_once{
+            if self.only_once {
                 break;
             }
         }
@@ -225,14 +226,14 @@ impl Operators {
     }
 }
 
-pub struct Expr<F: AstFactory> {
+pub struct Expr{
     factor: Rc<Parser>,
     operators: Rc<Operators>,
-    factory: Box<F>,
+    factory: Box<dyn AstFactory>,
 }
 
-impl<F: AstFactory> Expr<F> {
-    pub fn new(factor: Rc<Parser>, operators: Rc<Operators>, factory: Box<F>) -> Self {
+impl Expr {
+    pub fn new(factor: Rc<Parser>, operators: Rc<Operators>, factory: Box<dyn AstFactory>) -> Self {
         Expr { factor, operators, factory }
     }
 
@@ -265,7 +266,7 @@ impl<F: AstFactory> Expr<F> {
             right = if do_shift { self._do_shift(lexer, right, precedence)? } else { right }
         }
         res.push(right);
-        Ok(ast_node_factory(&mut res))
+        Ok(self.factory.make(res))
     }
 }
 
@@ -313,7 +314,7 @@ impl<F: AstFactory> Expr<F> {
 /// right =  ((((((a,*,3),/,b),*,6),+,2),+,((d,/,e),*,3))  next_op = None list.add(right)
 /// ```
 
-impl<F: AstFactory> Element for Expr<F> {
+impl Element for Expr {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
         let mut right = self.factor.parse(lexer)?;
         while let Some(precedence) = self._next_operator(lexer) {
