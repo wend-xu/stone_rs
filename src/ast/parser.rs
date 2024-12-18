@@ -1,36 +1,32 @@
-use crate::ast::ast_tree::{ AstTree};
-use crate::ast::element::{Element, Expr, Operators, OrTree};
+use crate::ast::ast_tree::AstTree;
+use crate::ast::element::{Element, Expr, IdToken, Leaf, NumToken, Operators, OrTree, Repeat, Skip, StrToken};
+use crate::ast::factory::{AstFactory, AstLeafFactory, AstListFactory};
 use crate::lexer::lexer::Lexer;
 use std::rc::Rc;
-use crate::ast::factory::{AstFactory, AstListFactory};
 
+// #[derive(Copy, Clone)]
 pub struct Parser {
-    factory:Box<dyn AstFactory>,
+    factory: Box<dyn AstFactory>,
     elements: Vec<Box<dyn Element>>,
 }
 
 impl Parser {
-    pub fn new() -> Parser {
+    pub fn rule() -> Parser {
         let factory = AstListFactory::new();
-        Parser {factory, elements: vec![] }
+        Self::rule_with_factory(factory)
     }
 
-    pub fn new_with_elements(elements: Vec<Box<dyn Element>>) -> Parser {
-        let factory = AstListFactory::new();
-        Parser {factory, elements }
+    pub fn rule_with_factory(factory: Box<dyn AstFactory>) -> Parser {
+        Parser { factory, elements: vec![] }
     }
 
 
-    pub fn rule() -> Self {
-        Self::new()
-    }
-
-    pub fn parse(&self, lexer: &mut dyn Lexer) -> Result<Box<dyn AstTree>,String>{
+    pub fn parse(&self, lexer: &mut dyn Lexer) -> Result<Box<dyn AstTree>, String> {
         let mut res: Vec<Box<dyn AstTree>> = vec![];
         let mut err: Option<String> = None;
         for element in &self.elements {
-            if err.is_some() { break }
-            match element.parse(lexer, &mut res){
+            if err.is_some() { break; }
+            match element.parse(lexer, &mut res) {
                 Ok(_) => {}
                 Err(err_msg) => { err = Some(err_msg) }
             }
@@ -42,25 +38,76 @@ impl Parser {
         if self.elements.len() > 0 { self.elements.get(0).unwrap().is_match(lexer) } else { false }
     }
 
-    // f可能是为引用类型实现，这是编译器所无法确定的
-    // 如此时将一个 Box<F> 存入 Vec<Box<dyn Element>> ，就可能会出现引用类型被提前释放的情况
-    // 在使用泛型的情况下，最简单的方式是添加 'static 注解代表传入是引用类型时必须是 static 生命周期
-    //
-    // rust 无法限制 F 对应的实现不能为引用类型 ，如 实现  impl AstFactory for &BinaryExprFactory
-    // 若传入的是对引用的实现，不添加生命周期标识，可能会造成悬垂指针，这是rust编译器所不允许的
-    // 若添加标识，则至少是与self的生命周期一般长
-    pub fn expr(mut self, f: Box<dyn AstFactory>, factor: Rc<Parser>, operators: Rc<Operators>) -> Self {
-        let expr = Expr::new(Rc::clone(&factor), operators,f);
-        self.elements.push(Box::new(expr));
+    pub fn reset(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
+        self.elements.clear();
+        if let Some(factory) = factory {
+            self.factory = factory;
+        }
         self
     }
 
-    pub fn or(mut self,vec: Vec<&Rc<Parser>>) -> Self{
+    pub fn reset_def(mut self) -> Self {
+        self.reset(None)
+    }
+
+
+    pub fn number(mut self, factory: Option<Box<dyn AstLeafFactory>>) -> Self {
+        self.elements.push(NumToken::new(factory));
+        self
+    }
+
+    pub fn identifier(mut self, factory: Option<Box<dyn AstLeafFactory>>) -> Self {
+        self.elements.push(IdToken::new(factory));
+        self
+    }
+
+    pub fn string(mut self, factory: Option<Box<dyn AstLeafFactory>>) -> Self {
+        self.elements.push(StrToken::new(factory));
+        self
+    }
+
+
+    pub fn token(mut self, pat: Vec<&str>) -> Self {
+        self.elements.push(Leaf::new(pat));
+        self
+    }
+
+    pub fn sep(mut self, pat: Vec<&str>) -> Self {
+        self.elements.push(Skip::new(pat));
+        self
+    }
+
+    pub fn or(mut self, vec: Vec<&Rc<Parser>>) -> Self {
         let mut parser_rc_vec = vec![];
         for parser in vec {
             parser_rc_vec.push(Rc::clone(parser));
         }
-        self.elements.push(Box::new(OrTree::new(parser_rc_vec)));
+        self.elements.push(OrTree::new(parser_rc_vec));
         self
+    }
+
+    pub fn maybe(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
+        todo!("完成其他功能后实现，需要各个结构体均实现了AstFactory 底层结构均增加了 clone ")
+    }
+
+    pub fn option(mut self, repeat: Rc<Parser>) -> Self {
+        self.elements.push(Repeat::new(repeat,true));
+        self
+    }
+
+    pub fn repeat(mut self, repeat: Rc<Parser>) -> Self {
+        self.elements.push(Repeat::new(repeat,false));
+        self
+    }
+
+    pub fn expr(mut self, f: Box<dyn AstFactory>, factor: Rc<Parser>, operators: Rc<Operators>) -> Self {
+        let expr = Expr::new(Rc::clone(&factor), operators, f);
+        self.elements.push(expr);
+        self
+    }
+
+
+    pub fn insert_choice(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
+        todo!()
     }
 }

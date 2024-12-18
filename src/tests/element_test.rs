@@ -1,13 +1,14 @@
 #[cfg(test)]
 mod element_tests {
     use crate::ast::ast_list::AstList;
-    use crate::ast::ast_tree::{AstFactory, AstTree, BinaryExprFactory};
-    use crate::ast::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree, Skip, StrToken};
+    use crate::ast::ast_tree::{AstTree};
+    use crate::ast::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree};
     use crate::ast::parser::Parser;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use std::any::{Any, TypeId};
+    use std::marker::PhantomData;
     use std::rc::Rc;
-    use crate::lexer::lexer::Lexer;
+    use crate::ast::factory::{AstFactory, BinaryExprFactory, IdentifierLiteralFactory};
 
     #[test]
     fn match_test() {
@@ -27,14 +28,15 @@ mod element_tests {
     fn token_test() {
         let code = "code".to_string();
         let mut lexer = LineReaderLexer::new(code);
-        let x = IdToken;
+        let factory = IdentifierLiteralFactory::new();
+        let x = IdToken::new(Some(factory));
         let mut res: Vec<Box<dyn AstTree>> = vec![];
         x.parse(&mut lexer, &mut res);
         println!("{}", res.get(0).unwrap().location());
     }
 
     #[test]
-    fn leaf_new(){
+    fn leaf_new() {
         let leaf = Leaf::new(vec!["(", ")"]);
         println!("{:?}", leaf);
         let code = "(".to_string();
@@ -42,11 +44,21 @@ mod element_tests {
         println!("{}", leaf.is_match(&mut lexer));
     }
 
+
     #[test]
-    fn parser_with_generic(){
+    fn parser_with_generic() {
         let factor = Rc::new(Parser::rule());
-        let operators = Rc::new( Operators::new());
-        let x = Box::new(BinaryExprFactory{});
+        let operators = Rc::new(Operators::new());
+        let x = Box::new(BinaryExprFactory {});
+
+        let x1 = Parser::rule().expr(BinaryExprFactory::new(), factor, operators);
+    }
+
+    #[test]
+    fn parser_with_generic_2() {
+        let factor = Rc::new(Parser::rule());
+        let operators = Rc::new(Operators::new());
+        let x = BinaryExprFactory::new();
 
         // Parser::expr(BinaryExprFactory{},factor,operators);
         // let x1 = Parser::rule().expr::<BinaryExprFactory>(BinaryExprFactory {}, factor, operators);
@@ -54,47 +66,47 @@ mod element_tests {
         //
         // let parser = Parser::rule().or(vec![&expr]);
 
-        let mut test =Test{vec:vec![]};
-        test.add_not_generic(Box::new(OrTree::new(vec![])));
-        let num_token = NumToken;
+        let mut test = Test { vec: vec![] };
+        test.add_not_generic(OrTree::new(vec![]));
+        let num_token = NumToken::new(None);
         let mut lexer = LineReaderLexer::new("111".to_string());
-        let ref_num_token = &NumToken;
+        let ref_num_token = &NumToken::new(None);
         // println!("match {}",num_token.is_match(&mut lexer));
-        println!("match {}",ref_num_token.is_match(&mut lexer));
+        println!("match {}", ref_num_token.is_match(&mut lexer));
     }
 
-    struct Test{
-        vec:Vec<Box<dyn Element>>,
+    struct Test {
+        vec: Vec<Box<dyn Element>>,
     }
 
     impl Test {
-        pub fn add_not_generic(mut self,ele:Box<dyn Element>) -> Self{
+        pub fn add_not_generic(mut self, ele: Box<dyn Element>) -> Self {
             self.vec.push(ele);
             self
         }
 
-        pub fn add_with_generic<E:Element+'static>(mut self,e:Box<E>)->Self{
+        pub fn add_with_generic<E: Element + 'static>(mut self, e: Box<E>) -> Self {
             self.vec.push(e);
             self
         }
     }
 
-    fn return_result(i:usize) -> Result<String,String>{
-        if i%5 == 0 {  Err("i % 5 not 0".to_string()) } else { Ok(format!("i is :{}", i)) }
+    fn return_result(i: usize) -> Result<String, String> {
+        if i % 5 == 0 { Err("i % 5 not 0".to_string()) } else { Ok(format!("i is :{}", i)) }
     }
 
-    fn for_result() -> Result<String,String>{
-        for i in 1..10{
-            println!("for {}",return_result(i)?);
+    fn for_result() -> Result<String, String> {
+        for i in 1..10 {
+            println!("for {}", return_result(i)?);
         }
         Ok("loop finish".to_string())
     }
 
     #[test]
-    fn result_test(){
-       match for_result() {
-           Ok(ok_msg) => {println!("{}",ok_msg)},
-           Err(err_msg) => {println!("{}", err_msg);}
-       };
+    fn result_test() {
+        match for_result() {
+            Ok(ok_msg) => { println!("{}", ok_msg) }
+            Err(err_msg) => { println!("{}", err_msg); }
+        };
     }
 }

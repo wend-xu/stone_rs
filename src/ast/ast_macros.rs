@@ -125,9 +125,28 @@ macro_rules! generate {
 
 
 
+/// 构建终结符 的 Element 通用实现
 #[macro_export]
 macro_rules! ast_impl_element_terminal {
-    ($ele_name:ident,$node_name:ident) => {
+    ($ele_name:ident,$node_name:ident,$def_factory_name:ident) => {
+       pub struct $ele_name{
+          factory: Box<dyn AstLeafFactory>,
+       }
+
+       impl $ele_name {
+           pub fn new(factory:Option<Box<dyn AstLeafFactory>>) -> Box<Self>{
+                let factory = match factory{
+                    None => { $def_factory_name::new() }
+                    Some(factory) => { factory }
+                };
+                Box::new($ele_name{factory})
+            }
+
+            pub fn new_def() -> Box<Self>{
+                Self::new(None)
+            }
+       }
+
        impl Element for $ele_name {
             fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
                 let read = lexer.read().unwrap();
@@ -142,4 +161,44 @@ macro_rules! ast_impl_element_terminal {
             }
         }
     }
+}
+
+
+#[macro_export]
+macro_rules! ast_impl_leaf_factory {
+   ($factory_name:ident,$node_name:ident) => {
+      pub struct $factory_name {}
+
+      impl $factory_name {
+        pub fn new() -> Box<Self> {
+            Box::new($factory_name {})
+        }
+      }
+
+      impl AstLeafFactory for $factory_name {
+          fn make(&self, res: Box<dyn Token>) -> Box<dyn AstTree> {
+              $node_name::new(res)
+          }
+      }
+   }
+}
+
+
+#[macro_export]
+macro_rules! ast_impl_list_factory {
+   ($factory_name:ident,$node_name:ident) => {
+      pub struct $factory_name {}
+
+      impl $factory_name {
+        pub fn new() -> Box<Self> {
+            Box::new($factory_name {})
+        }
+      }
+
+      impl AstFactory for $factory_name {
+          fn make(&self, res: Vec<Box<dyn AstTree>>) -> Box<dyn AstTree> {
+              Box::new($node_name::new(res))
+          }
+      }
+   }
 }

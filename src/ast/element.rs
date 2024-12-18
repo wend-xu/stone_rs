@@ -8,7 +8,7 @@ use crate::token::{Token, TokenValue};
 use std::any::TypeId;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::ast::factory::AstFactory;
+use crate::ast::factory::{AstFactory, AstLeafFactory, IdentifierLiteralFactory, NumberLiteralFactory, StringLiteralFactory};
 
 pub trait Element {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String>;
@@ -45,8 +45,8 @@ pub struct OrTree {
 }
 
 impl OrTree {
-    pub fn new(parser_vec: Vec<Rc<Parser>>) -> Self {
-        OrTree { parser_vec }
+    pub fn new(parser_vec: Vec<Rc<Parser>>) -> Box<Self>{
+        Box::new(OrTree{parser_vec})
     }
 
     fn choose(&self, lexer: &mut dyn Lexer) -> Option<Rc<Parser>> {
@@ -88,8 +88,8 @@ pub struct Repeat {
 }
 
 impl Repeat {
-    fn new(parser: Rc<Parser>, only_once: bool) -> Self {
-        Repeat { parser, only_once }
+    pub fn new(parser: Rc<Parser>, only_once: bool) -> Box<Self>{
+        Box::new(Repeat{parser, only_once})
     }
 }
 
@@ -121,16 +121,11 @@ impl Element for Repeat {
     }
 }
 
-pub struct IdToken;
-ast_impl_element_terminal!(IdToken,IdentifierLiteral);
 
-pub struct StrToken;
-ast_impl_element_terminal!(StrToken,StringLiteral);
-
-pub struct NumToken;
-ast_impl_element_terminal!(NumToken,NumberLiteral);
-
-
+/// 终结符的实现都是一样的，使用宏定义
+ast_impl_element_terminal! {IdToken,IdentifierLiteral,IdentifierLiteralFactory}
+ast_impl_element_terminal! {StrToken,StringLiteral,StringLiteralFactory}
+ast_impl_element_terminal! {NumToken, NumberLiteral,NumberLiteralFactory}
 
 #[derive(Debug)]
 pub struct Leaf {
@@ -138,10 +133,12 @@ pub struct Leaf {
 }
 
 impl Leaf {
-    pub fn new(leaf_literal: Vec<&str>) -> Self {
-        Leaf {
-            tokens: leaf_literal.iter().map(|str| TokenValue::IDENTIFIER(str.to_string())).collect()
-        }
+    pub fn new(leaf_literal: Vec<&str>) -> Box<Self> {
+        Box::new(
+            Leaf {
+                tokens: leaf_literal.iter().map(|str| TokenValue::IDENTIFIER(str.to_string())).collect()
+            }
+        )
     }
 }
 
@@ -159,14 +156,16 @@ impl Element for Leaf {
 }
 
 pub struct Skip {
-    leaf: Leaf,
+    leaf: Box<Leaf>,
 }
 
 impl Skip {
-    pub fn new(leaf_literal: Vec<&str>) -> Self {
-        Skip {
-            leaf: Leaf::new(leaf_literal)
-        }
+    pub fn new(leaf_literal: Vec<&str>) -> Box<Self> {
+        Box::new(
+            Skip {
+                leaf: Leaf::new(leaf_literal)
+            }
+        )
     }
 }
 
@@ -226,15 +225,15 @@ impl Operators {
     }
 }
 
-pub struct Expr{
+pub struct Expr {
     factor: Rc<Parser>,
     operators: Rc<Operators>,
     factory: Box<dyn AstFactory>,
 }
 
 impl Expr {
-    pub fn new(factor: Rc<Parser>, operators: Rc<Operators>, factory: Box<dyn AstFactory>) -> Self {
-        Expr { factor, operators, factory }
+    pub fn new(factor: Rc<Parser>, operators: Rc<Operators>, factory: Box<dyn AstFactory>) -> Box<Self> {
+        Box::new(Expr { factor, operators, factory })
     }
 
     // 此处为 peek，因为优先级问题，同一运算符可能被多次读取
