@@ -22,8 +22,8 @@ pub struct Tree {
 }
 
 impl Tree {
-    fn new(parser: Rc<Parser>) -> Self {
-        Tree { parser }
+    pub fn new(parser: &Rc<Parser>) -> Box<Self> {
+        Box::new(Tree { parser: Rc::clone(parser) })
     }
 }
 
@@ -45,8 +45,8 @@ pub struct OrTree {
 }
 
 impl OrTree {
-    pub fn new(parser_vec: Vec<Rc<Parser>>) -> Box<Self>{
-        Box::new(OrTree{parser_vec})
+    pub fn new(parser_vec: Vec<Rc<Parser>>) -> Box<Self> {
+        Box::new(OrTree { parser_vec })
     }
 
     fn choose(&self, lexer: &mut dyn Lexer) -> Option<Rc<Parser>> {
@@ -88,8 +88,8 @@ pub struct Repeat {
 }
 
 impl Repeat {
-    pub fn new(parser: Rc<Parser>, only_once: bool) -> Box<Self>{
-        Box::new(Repeat{parser, only_once})
+    pub fn new(parser: &Rc<Parser>, only_once: bool) -> Box<Self> {
+        Box::new(Repeat {parser:Rc::clone(parser), only_once })
     }
 }
 
@@ -187,7 +187,7 @@ impl Element for Skip {
 ///     如
 ///     = 赋值运算，右结合， 如一行多次赋值 a = b = c = 3,所有 = 号 具备相同优先级，最先执行的是最右边的赋值
 ///     + 加法运算，左结合
-struct Precedence {
+pub struct Precedence {
     value: usize,
     left_assoc: bool,
 }
@@ -212,16 +212,20 @@ impl Operators {
         }
     }
 
-    fn add(&mut self, name: &str, precedence: usize, left_assoc: bool) -> &Self {
-        self.operators.insert(name.to_string(), Rc::new(Precedence { value: precedence, left_assoc }));
+    pub fn add(&mut self, name: &str, precedence: Precedence) -> &Self {
+        self.operators.insert(name.to_string(), Rc::new(precedence));
         self
     }
 
-    fn get(&self, name: &str) -> Option<Rc<Precedence>> {
+    pub fn get(&self, name: &str) -> Option<Rc<Precedence>> {
         match self.operators.get(name) {
             None => { None }
             Some(rc_pre) => { Some(Rc::clone(rc_pre)) }
         }
+    }
+
+    pub fn rc(mut self) -> Rc<Self> {
+       Rc::new(self)
     }
 }
 

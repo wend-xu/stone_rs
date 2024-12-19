@@ -1,5 +1,5 @@
 use crate::ast::ast_tree::AstTree;
-use crate::ast::element::{Element, Expr, IdToken, Leaf, NumToken, Operators, OrTree, Repeat, Skip, StrToken};
+use crate::ast::element::{Element, Expr, IdToken, Leaf, NumToken, Operators, OrTree, Repeat, Skip, StrToken, Tree};
 use crate::ast::factory::{AstFactory, AstLeafFactory, AstListFactory};
 use crate::lexer::lexer::Lexer;
 use std::rc::Rc;
@@ -11,12 +11,12 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn rule() -> Parser {
+    pub fn rule_def() -> Parser {
         let factory = AstListFactory::new();
-        Self::rule_with_factory(factory)
+        Self::rule(factory)
     }
 
-    pub fn rule_with_factory(factory: Box<dyn AstFactory>) -> Parser {
+    pub fn rule(factory: Box<dyn AstFactory>) -> Parser {
         Parser { factory, elements: vec![] }
     }
 
@@ -72,6 +72,11 @@ impl Parser {
         self
     }
 
+    pub fn ast(mut self,pat:&Rc<Parser>) -> Self{
+        self.elements.push(Tree::new(pat));
+        self
+    }
+
     pub fn sep(mut self, pat: Vec<&str>) -> Self {
         self.elements.push(Skip::new(pat));
         self
@@ -86,28 +91,48 @@ impl Parser {
         self
     }
 
-    pub fn maybe(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
-        todo!("完成其他功能后实现，需要各个结构体均实现了AstFactory 底层结构均增加了 clone ")
+    pub fn or_ref(&mut self, vec: Vec<&Rc<Parser>>) -> &Self {
+        let mut parser_rc_vec = vec![];
+        for parser in vec {
+            parser_rc_vec.push(Rc::clone(parser));
+        }
+        self.elements.push(OrTree::new(parser_rc_vec));
+        self
     }
 
-    pub fn option(mut self, repeat: Rc<Parser>) -> Self {
+    pub fn maybe(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
+        todo!("需要的时候在实现，用于数组类型")
+    }
+
+    pub fn option(mut self, repeat: &Rc<Parser>) -> Self {
         self.elements.push(Repeat::new(repeat,true));
         self
     }
 
-    pub fn repeat(mut self, repeat: Rc<Parser>) -> Self {
+    pub fn repeat(mut self, repeat: &Rc<Parser>) -> Self {
         self.elements.push(Repeat::new(repeat,false));
         self
     }
 
-    pub fn expr(mut self, f: Box<dyn AstFactory>, factor: Rc<Parser>, operators: Rc<Operators>) -> Self {
-        let expr = Expr::new(Rc::clone(&factor), operators, f);
+    pub fn expr(mut self, f: Box<dyn AstFactory>, factor: &Rc<Parser>, operators: &Rc<Operators>) -> Self {
+        let expr = Expr::new(Rc::clone(factor), Rc::clone(operators), f);
         self.elements.push(expr);
         self
     }
 
+    pub fn expr_ref(&mut self, f: Box<dyn AstFactory>, factor: &Rc<Parser>, operators: &Rc<Operators>) -> &Self {
+        let expr = Expr::new(Rc::clone(factor), Rc::clone(operators), f);
+        self.elements.push(expr);
+        self
+    }
 
     pub fn insert_choice(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
-        todo!()
+        todo!("需要的时候再实现")
     }
+
+    // todo 判断self 是 rc 还是 原始类型，决定 Rc::new 还是 Clone
+    pub fn rc(mut self) -> Rc<Self> {
+        Rc::new(self)
+    }
+
 }

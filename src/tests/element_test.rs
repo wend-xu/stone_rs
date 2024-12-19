@@ -8,6 +8,7 @@ mod element_tests {
     use std::any::{Any, TypeId};
     use std::marker::PhantomData;
     use std::rc::Rc;
+    use crate::ast::basic_parser::stone_parser;
     use crate::ast::factory::{AstFactory, BinaryExprFactory, IdentifierLiteralFactory};
 
     #[test]
@@ -47,16 +48,16 @@ mod element_tests {
 
     #[test]
     fn parser_with_generic() {
-        let factor = Rc::new(Parser::rule());
+        let factor = Rc::new(Parser::rule_def());
         let operators = Rc::new(Operators::new());
         let x = Box::new(BinaryExprFactory {});
 
-        let x1 = Parser::rule().expr(BinaryExprFactory::new(), factor, operators);
+        // let x1 = Parser::rule_def().expr(BinaryExprFactory::new(), factor, operators);
     }
 
     #[test]
     fn parser_with_generic_2() {
-        let factor = Rc::new(Parser::rule());
+        let factor = Rc::new(Parser::rule_def());
         let operators = Rc::new(Operators::new());
         let x = BinaryExprFactory::new();
 
@@ -108,5 +109,30 @@ mod element_tests {
             Ok(ok_msg) => { println!("{}", ok_msg) }
             Err(err_msg) => { println!("{}", err_msg); }
         };
+    }
+
+
+    #[test]
+    fn parer_test() {
+        let code = "\
+even = 0
+odd = 0
+i  = 1
+while i < 10 {
+	if i % 2 == 0 {
+		even = even + i
+	}else {
+		odd = odd + i
+	}
+	i = i + 1
+}
+even + odd
+        ";
+
+        let mut lexer = LineReaderLexer::new(code.to_string());
+
+        let parser = stone_parser();
+        let result = parser.parse(&mut lexer);
+        println!("执行完成");
     }
 }
