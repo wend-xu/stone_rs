@@ -33,7 +33,8 @@ impl AstTree for AstLeaf {
     }
 
     fn location(&self) -> String {
-        format!("<location line_num:{} , value :{:?}>", self.token.line_number() ,self.token.value())
+        // format!("<location line_num:{} , value :{:?}>", self.token.line_number() ,self.token.value())
+        format!("value :{:?}>",self.token.value())
     }
 
     fn actual_type_id(&self) -> TypeId {

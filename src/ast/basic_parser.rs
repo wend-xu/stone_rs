@@ -31,7 +31,7 @@ pub fn stone_parser() -> Parser {
             &primary
         ]).rc();
 
-    expr.expr_ref(BinaryExprFactory::new(), &factor, &operators);
+    expr.borrow_mut().expr_ref(BinaryExprFactory::new(), &factor, &operators);
 
     let mut statement = Parser::rule_def().rc();
 
@@ -44,7 +44,7 @@ pub fn stone_parser() -> Parser {
 
     let simple = Parser::rule(PrimaryExprFactory::new()).ast(&expr).rc();
 
-    statement.or_ref(vec![
+    statement.borrow_mut().or_ref(vec![
         &Parser::rule(IfStmtFactory::new())
             .sep(vec!["if"]).ast(&expr)
             .ast(&block)

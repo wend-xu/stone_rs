@@ -130,9 +130,23 @@ even + odd
         ";
 
         let mut lexer = LineReaderLexer::new(code.to_string());
-
+        println!("分词完成");
         let parser = stone_parser();
-        let result = parser.parse(&mut lexer);
-        println!("执行完成");
+        println!("语法解析器完成");
+        let is_match = parser.is_match(&mut lexer);
+        let res = if is_match {
+            println!("开始构建语法树");
+            parser.parse(&mut lexer)
+        }else {
+            Err("不匹配语法".to_string())
+        };
+
+        println!("构建语法树完成");
+        match res{
+            Ok(astTree) => {
+                println!("{}", astTree.location())
+            }
+            Err(err_msg ) => { println!("语法构建错误： {}", err_msg); }
+        }
     }
 }

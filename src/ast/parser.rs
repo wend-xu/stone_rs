@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use crate::ast::ast_tree::AstTree;
 use crate::ast::element::{Element, Expr, IdToken, Leaf, NumToken, Operators, OrTree, Repeat, Skip, StrToken, Tree};
 use crate::ast::factory::{AstFactory, AstLeafFactory, AstListFactory};
@@ -72,7 +73,7 @@ impl Parser {
         self
     }
 
-    pub fn ast(mut self,pat:&Rc<Parser>) -> Self{
+    pub fn ast(mut self,pat: &Rc<RefCell<Self>>) -> Self{
         self.elements.push(Tree::new(pat));
         self
     }
@@ -82,7 +83,7 @@ impl Parser {
         self
     }
 
-    pub fn or(mut self, vec: Vec<&Rc<Parser>>) -> Self {
+    pub fn or(mut self, vec: Vec<&Rc<RefCell<Parser>>>) -> Self {
         let mut parser_rc_vec = vec![];
         for parser in vec {
             parser_rc_vec.push(Rc::clone(parser));
@@ -91,7 +92,7 @@ impl Parser {
         self
     }
 
-    pub fn or_ref(&mut self, vec: Vec<&Rc<Parser>>) -> &Self {
+    pub fn or_ref(&mut self, vec: Vec<&Rc<RefCell<Parser>>>) -> &Self {
         let mut parser_rc_vec = vec![];
         for parser in vec {
             parser_rc_vec.push(Rc::clone(parser));
@@ -104,23 +105,23 @@ impl Parser {
         todo!("需要的时候在实现，用于数组类型")
     }
 
-    pub fn option(mut self, repeat: &Rc<Parser>) -> Self {
+    pub fn option(mut self, repeat: &Rc<RefCell<Parser>>) -> Self {
         self.elements.push(Repeat::new(repeat,true));
         self
     }
 
-    pub fn repeat(mut self, repeat: &Rc<Parser>) -> Self {
+    pub fn repeat(mut self, repeat: &Rc<RefCell<Parser>>) -> Self {
         self.elements.push(Repeat::new(repeat,false));
         self
     }
 
-    pub fn expr(mut self, f: Box<dyn AstFactory>, factor: &Rc<Parser>, operators: &Rc<Operators>) -> Self {
+    pub fn expr(mut self, f: Box<dyn AstFactory>, factor: &Rc<RefCell<Parser>>, operators: &Rc<Operators>) -> Self {
         let expr = Expr::new(Rc::clone(factor), Rc::clone(operators), f);
         self.elements.push(expr);
         self
     }
 
-    pub fn expr_ref(&mut self, f: Box<dyn AstFactory>, factor: &Rc<Parser>, operators: &Rc<Operators>) -> &Self {
+    pub fn expr_ref(&mut self, f: Box<dyn AstFactory>, factor: &Rc<RefCell<Parser>>, operators: &Rc<Operators>) -> &Self {
         let expr = Expr::new(Rc::clone(factor), Rc::clone(operators), f);
         self.elements.push(expr);
         self
@@ -131,8 +132,7 @@ impl Parser {
     }
 
     // todo 判断self 是 rc 还是 原始类型，决定 Rc::new 还是 Clone
-    pub fn rc(mut self) -> Rc<Self> {
-        Rc::new(self)
+    pub fn rc(mut self) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(self))
     }
-
 }

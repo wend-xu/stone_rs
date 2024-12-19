@@ -6,6 +6,7 @@ use crate::ast_impl_element_terminal;
 use crate::lexer::lexer::Lexer;
 use crate::token::{Token, TokenValue};
 use std::any::TypeId;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::ast::factory::{AstFactory, AstLeafFactory, IdentifierLiteralFactory, NumberLiteralFactory, StringLiteralFactory};
@@ -18,11 +19,11 @@ pub trait Element {
 
 
 pub struct Tree {
-    parser: Rc<Parser>,
+    parser: Rc<RefCell<Parser>>,
 }
 
 impl Tree {
-    pub fn new(parser: &Rc<Parser>) -> Box<Self> {
+    pub fn new(parser: &Rc<RefCell<Parser>>) -> Box<Self> {
         Box::new(Tree { parser: Rc::clone(parser) })
     }
 }
@@ -30,29 +31,30 @@ impl Tree {
 
 impl Element for Tree {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        let parse_res = self.parser.parse(lexer)?;
+        let parse_res = self.parser.borrow().parse(lexer)?;
         res.push(parse_res);
         Ok(())
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
-        self.parser.is_match(lexer)
+        self.parser.borrow().is_match(lexer)
     }
 }
 
 pub struct OrTree {
-    parser_vec: Vec<Rc<Parser>>,
+    parser_vec: Vec<Rc<RefCell<Parser>>>,
 }
 
 impl OrTree {
-    pub fn new(parser_vec: Vec<Rc<Parser>>) -> Box<Self> {
+    pub fn new(parser_vec: Vec<Rc<RefCell<Parser>>>) -> Box<Self> {
         Box::new(OrTree { parser_vec })
     }
 
-    fn choose(&self, lexer: &mut dyn Lexer) -> Option<Rc<Parser>> {
-        let mut choose_tree: Option<Rc<Parser>> = None;
-        while let Some(parser) = self.parser_vec.iter().next() {
-            if parser.is_match(lexer) {
+    fn choose(&self, lexer: &mut dyn Lexer) -> Option<Rc<RefCell<Parser>>> {
+        let mut choose_tree: Option<Rc<RefCell<Parser>>> = None;
+        let mut iter = self.parser_vec.iter();
+        while let Some(parser) = iter.next() {
+            if parser.borrow_mut().is_match(lexer) {
                 choose_tree = Some(Rc::clone(parser));
                 break;
             }
@@ -65,7 +67,7 @@ impl Element for OrTree {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
         let choose_tree = self.choose(lexer);
         let result = if let Some(parser) = choose_tree {
-            parser.parse(lexer)
+            parser.borrow_mut().parse(lexer)
         } else {
             let next_token = lexer.peek(0).unwrap();
             Err(format!("OrTree::choose failed, no parser found, token : [{} : {:?} ]", next_token.line_number(), next_token.value()))
@@ -83,19 +85,19 @@ impl Element for OrTree {
 
 
 pub struct Repeat {
-    parser: Rc<Parser>,
+    parser: Rc<RefCell<Parser>>,
     only_once: bool,
 }
 
 impl Repeat {
-    pub fn new(parser: &Rc<Parser>, only_once: bool) -> Box<Self> {
+    pub fn new(parser: &Rc<RefCell<Parser>>, only_once: bool) -> Box<Self> {
         Box::new(Repeat {parser:Rc::clone(parser), only_once })
     }
 }
 
 impl Element for Repeat {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        while self.parser.is_match(lexer) {
+        while self.parser.borrow_mut().is_match(lexer) {
             /// parser 出现AstList则是factory构建ast节点的时候没有指定类型，实际上没有执行的功能
             /// 这种情况确实可以忽略，因为本身就是无法执行的，在ast树上也没意义
             ///
@@ -105,7 +107,7 @@ impl Element for Repeat {
             /// 若是将  (";" | EOL) 作为重复的结尾，一样可以实现匹配，相对的就是匹配完块后不进入while循环的情况
             ///
             /// 故进入while 循环后的判定条件：  不为AstList(不可执行无意义) 子节点是数为0(实际未匹配可执行内容)
-            let tree_node = self.parser.parse(lexer)?;
+            let tree_node = self.parser.borrow_mut().parse(lexer)?;
             if tree_node.actual_type_id() == TypeId::of::<AstList>() || tree_node.num_children() > 0 {
                 res.push(tree_node);
             }
@@ -117,7 +119,7 @@ impl Element for Repeat {
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
-        self.parser.is_match(lexer)
+        self.parser.borrow_mut().is_match(lexer)
     }
 }
 
@@ -230,13 +232,13 @@ impl Operators {
 }
 
 pub struct Expr {
-    factor: Rc<Parser>,
+    factor: Rc<RefCell<Parser>>,
     operators: Rc<Operators>,
     factory: Box<dyn AstFactory>,
 }
 
 impl Expr {
-    pub fn new(factor: Rc<Parser>, operators: Rc<Operators>, factory: Box<dyn AstFactory>) -> Box<Self> {
+    pub fn new(factor: Rc<RefCell<Parser>>, operators: Rc<Operators>, factory: Box<dyn AstFactory>) -> Box<Self> {
         Box::new(Expr { factor, operators, factory })
     }
 
@@ -263,7 +265,7 @@ impl Expr {
         let operator = AstLeaf::new(lexer.read().unwrap());
         let mut res = vec![left, operator];
 
-        let mut right = self.factor.parse(lexer)?;
+        let mut right = self.factor.borrow_mut().parse(lexer)?;
         while let Some(ref op) = self._next_operator(lexer) {
             let do_shift = self._right_is_expr(precedence.as_ref(), op.as_ref());
             right = if do_shift { self._do_shift(lexer, right, precedence)? } else { right }
@@ -319,7 +321,7 @@ impl Expr {
 
 impl Element for Expr {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        let mut right = self.factor.parse(lexer)?;
+        let mut right = self.factor.borrow_mut().parse(lexer)?;
         while let Some(precedence) = self._next_operator(lexer) {
             right = self._do_shift(lexer, right, &precedence)?;
         }
@@ -328,6 +330,6 @@ impl Element for Expr {
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
-        self.factor.is_match(lexer)
+        self.factor.borrow_mut().is_match(lexer)
     }
 }
