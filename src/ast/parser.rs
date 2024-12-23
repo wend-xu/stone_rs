@@ -24,15 +24,11 @@ impl Parser {
 
     pub fn parse(&self, lexer: &mut dyn Lexer) -> Result<Box<dyn AstTree>, String> {
         let mut res: Vec<Box<dyn AstTree>> = vec![];
-        let mut err: Option<String> = None;
         for element in &self.elements {
-            if err.is_some() { break; }
-            match element.parse(lexer, &mut res) {
-                Ok(_) => {}
-                Err(err_msg) => { err = Some(err_msg) }
-            }
+            element.parse(lexer, &mut res)?
         }
-        if err.is_none() { Ok(self.factory.make(res)) } else { Err(err.unwrap()) }
+
+        Ok(self.factory.make(res))
     }
 
     pub fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
