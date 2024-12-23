@@ -54,7 +54,7 @@ impl OrTree {
         let mut choose_tree: Option<Rc<RefCell<Parser>>> = None;
         let mut iter = self.parser_vec.iter();
         while let Some(parser) = iter.next() {
-            if parser.borrow_mut().is_match(lexer) {
+            if parser.borrow().is_match(lexer) {
                 choose_tree = Some(Rc::clone(parser));
                 break;
             }
@@ -67,7 +67,7 @@ impl Element for OrTree {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
         let choose_tree = self.choose(lexer);
         let result = if let Some(parser) = choose_tree {
-            parser.borrow_mut().parse(lexer)
+            parser.borrow().parse(lexer)
         } else {
             let next_token = lexer.peek(0).unwrap();
             Err(format!("OrTree::choose failed, no parser found, token : [{} : {:?} ]", next_token.line_number(), next_token.value()))
@@ -97,7 +97,8 @@ impl Repeat {
 
 impl Element for Repeat {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        while self.parser.borrow_mut().is_match(lexer) {
+        let parser_borrow = self.parser.borrow();
+        while parser_borrow.is_match(lexer) {
             /// parser 出现AstList则是factory构建ast节点的时候没有指定类型，实际上没有执行的功能
             /// 这种情况确实可以忽略，因为本身就是无法执行的，在ast树上也没意义
             ///
@@ -107,7 +108,7 @@ impl Element for Repeat {
             /// 若是将  (";" | EOL) 作为重复的结尾，一样可以实现匹配，相对的就是匹配完块后不进入while循环的情况
             ///
             /// 故进入while 循环后的判定条件：  不为AstList(不可执行无意义) 子节点是数为0(实际未匹配可执行内容)
-            let tree_node = self.parser.borrow_mut().parse(lexer)?;
+            let tree_node = parser_borrow.parse(lexer)?;
             if tree_node.actual_type_id() == TypeId::of::<AstList>() || tree_node.num_children() > 0 {
                 res.push(tree_node);
             }
@@ -119,7 +120,7 @@ impl Element for Repeat {
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
-        self.parser.borrow_mut().is_match(lexer)
+        self.parser.borrow().is_match(lexer)
     }
 }
 

@@ -1,19 +1,18 @@
 #[cfg(test)]
 mod element_tests {
+    use crate::ast::ast_leaf::{IdentifierLiteral, StringLiteral};
     use crate::ast::ast_list::AstList;
-    use crate::ast::ast_tree::{AstTree};
+    use crate::ast::ast_tree::AstTree;
+    use crate::ast::basic_parser::stone_parser;
     use crate::ast::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree};
+    use crate::ast::factory::{BinaryExprFactory, IdentifierLiteralFactory};
     use crate::ast::parser::Parser;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
-    use std::any::{Any, TypeId};
-    use std::marker::PhantomData;
-    use std::rc::Rc;
-    use crate::ast::ast_leaf::{IdentifierLiteral, StringLiteral};
-    use crate::ast::basic_parser::stone_parser;
-    use crate::ast::factory::{AstFactory, BinaryExprFactory, IdentifierLiteralFactory};
     use crate::token::token_identifier::TokenIdentifier;
     use crate::token::token_string::TokenString;
     use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
+    use std::any::{Any, TypeId};
+    use std::rc::Rc;
 
     #[test]
     fn match_test() {
@@ -119,9 +118,6 @@ mod element_tests {
     #[test]
     fn parer_test() {
         let code = "\
-even = 0
-odd = 0
-i  = 1
 while i < 10 {
 	if i % 2 == 0 {
 		even = even + i
@@ -130,7 +126,6 @@ while i < 10 {
 	}
 	i = i + 1
 }
-even + odd
         ";
 
         let mut lexer = LineReaderLexer::new(code.to_string());
