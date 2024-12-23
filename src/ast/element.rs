@@ -8,6 +8,8 @@ use crate::token::{Token, TokenValue};
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::io;
+use std::io::Write;
 use std::rc::Rc;
 use crate::ast::factory::{AstFactory, AstLeafFactory, IdentifierLiteralFactory, NumberLiteralFactory, StringLiteralFactory};
 
@@ -91,7 +93,7 @@ pub struct Repeat {
 
 impl Repeat {
     pub fn new(parser: &Rc<RefCell<Parser>>, only_once: bool) -> Box<Self> {
-        Box::new(Repeat {parser:Rc::clone(parser), only_once })
+        Box::new(Repeat { parser: Rc::clone(parser), only_once })
     }
 }
 
@@ -139,7 +141,9 @@ impl Leaf {
     pub fn new(leaf_literal: Vec<&str>) -> Box<Self> {
         Box::new(
             Leaf {
-                tokens: leaf_literal.iter().map(|str| TokenValue::IDENTIFIER(str.to_string())).collect()
+                tokens: leaf_literal.iter()
+                    .map(|str|
+                        if TokenValue::literal_eol() == *str { TokenValue::EOL } else { TokenValue::IDENTIFIER(str.to_string()) }).collect()
             }
         )
     }
@@ -174,7 +178,7 @@ impl Skip {
 
 impl Element for Skip {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        Ok(())
+        self.leaf.parse(lexer, res)
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
@@ -190,6 +194,7 @@ impl Element for Skip {
 ///     如
 ///     = 赋值运算，右结合， 如一行多次赋值 a = b = c = 3,所有 = 号 具备相同优先级，最先执行的是最右边的赋值
 ///     + 加法运算，左结合
+#[derive(Debug)]
 pub struct Precedence {
     value: usize,
     left_assoc: bool,
@@ -228,7 +233,7 @@ impl Operators {
     }
 
     pub fn rc(mut self) -> Rc<Self> {
-       Rc::new(self)
+        Rc::new(self)
     }
 }
 
@@ -247,7 +252,9 @@ impl Expr {
     fn _next_operator(&self, lexer: &mut dyn Lexer) -> Option<Rc<Precedence>> {
         if let Some(box_token) = lexer.peek(0) {
             match box_token.value() {
-                TokenValue::IDENTIFIER(id) => { self.operators.get(id) }
+                TokenValue::IDENTIFIER(identifier) => {
+                    self.operators.get(identifier)
+                }
                 _ => { None }
             }
         } else { None }
@@ -269,7 +276,10 @@ impl Expr {
         let mut right = self.factor.borrow_mut().parse(lexer)?;
         while let Some(ref op) = self._next_operator(lexer) {
             let do_shift = self._right_is_expr(precedence.as_ref(), op.as_ref());
-            right = if do_shift { self._do_shift(lexer, right, precedence)? } else { right }
+            right = if do_shift { self._do_shift(lexer, right, precedence)? } else { right };
+            if !do_shift {
+                break;
+            }
         }
         res.push(right);
         Ok(self.factory.make(res))

@@ -1,6 +1,7 @@
 use crate::ast::element::{Operators, Precedence};
 use crate::ast::factory::{BinaryExprFactory, BlockStmtFactory, IdentifierLiteralFactory, IfStmtFactory, NegativeExprFactory, NullStmtFactory, NumberLiteralFactory, PrimaryExprFactory, StringLiteralFactory, WhileStmtFactory};
 use crate::ast::parser::Parser;
+use crate::token::TokenValue;
 
 pub fn stone_parser() -> Parser {
     let mut operators = Operators::new();
@@ -38,7 +39,7 @@ pub fn stone_parser() -> Parser {
     let block = Parser::rule(BlockStmtFactory::new())
         .sep(vec!["{"])
         .option(&statement).repeat(
-            &Parser::rule_def().sep(vec![";", "\\n"]).option(&statement).rc()
+            &Parser::rule_def().sep(vec![";",TokenValue::literal_eol()]).option(&statement).rc()
         )
         .sep(vec!["}"]).rc();
 
@@ -53,5 +54,5 @@ pub fn stone_parser() -> Parser {
         &simple
     ]);
 
-    Parser::rule_def().or(vec![&statement, &Parser::rule(NullStmtFactory::new()).rc()]).sep(vec![";", "\n"])
+    Parser::rule_def().or(vec![&statement, &Parser::rule(NullStmtFactory::new()).sep(vec![";",TokenValue::literal_eol()]).rc()])
 }

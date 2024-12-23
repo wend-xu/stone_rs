@@ -10,6 +10,12 @@ pub enum TokenValue{
     StringVal(String),
 }
 
+impl TokenValue {
+    pub fn literal_eol() -> &'static str{
+        "\n"
+    }
+}
+
 
 #[derive(Debug)]
 pub struct TokenLine {

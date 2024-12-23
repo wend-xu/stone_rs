@@ -4,7 +4,7 @@ mod element_tests {
     use crate::ast::ast_list::AstList;
     use crate::ast::ast_tree::AstTree;
     use crate::ast::basic_parser::stone_parser;
-    use crate::ast::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree};
+    use crate::ast::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree, Precedence};
     use crate::ast::factory::{BinaryExprFactory, IdentifierLiteralFactory};
     use crate::ast::parser::Parser;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
@@ -13,6 +13,8 @@ mod element_tests {
     use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
     use std::any::{Any, TypeId};
     use std::rc::Rc;
+    use crate::lexer::lexer::Lexer;
+    use crate::token::TokenValue;
 
     #[test]
     fn match_test() {
@@ -136,21 +138,21 @@ while i < 10 {
         let res = if is_match {
             println!("开始构建语法树");
             parser.parse(&mut lexer)
-        }else {
+        } else {
             Err("不匹配语法".to_string())
         };
 
         println!("构建语法树完成");
-        match res{
+        match res {
             Ok(astTree) => {
                 println!("{}", astTree.location())
             }
-            Err(err_msg ) => { println!("语法构建错误： {}", err_msg); }
+            Err(err_msg) => { println!("语法构建错误： {}", err_msg); }
         }
     }
 
     #[test]
-    pub fn concat_test(){
+    pub fn concat_test() {
         let str_vec = vec![
             "column1row1\ncolumn1row2".to_string(),
             "column2row1\ncolumn2row2\ncolumn2row3".to_string(),
@@ -160,30 +162,87 @@ while i < 10 {
             // "第三列第一行".to_string(),
             // "第四列第一行\n第四列第二行".to_string(),
         ];
-        println!("{}", lines_concat_with_divide(str_vec,Some("    ")));
+        println!("{}", lines_concat_with_divide(str_vec, Some("    ")));
     }
 
 
     #[test]
-    pub fn concat_test_2(){
+    pub fn concat_test_2() {
         let string_1 = StringLiteral::new(TokenString::new(1, "hello"));
-        let string_2 =IdentifierLiteral::new(TokenIdentifier::new(1, "+"));
+        let string_2 = IdentifierLiteral::new(TokenIdentifier::new(1, "+"));
         let string_3 = StringLiteral::new(TokenString::new(1, "world"));
-        let block = lines_concat_with_divide(vec![string_1.location(), string_2.location(), string_3.location()],Some("    "));
+        let block = lines_concat_with_divide(vec![string_1.location(), string_2.location(), string_3.location()], Some("    "));
 
         let root = wrapper_node_name("ast_list".to_string());
         // println!("{}\n\n\n",root);
-        let block = wrapper_sub_block(root,block);
+        let block = wrapper_sub_block(root, block);
 
-        println!("{}",block);
+        println!("{}", block);
     }
 
 
     #[test]
-    pub fn concat_test_3(){
-        // println!("{}",wrapper_node_name("ast_list"));
-        let mut a = 0;
-        a = a.max(-1);
-        println!("{}" ,a)
+    pub fn concat_test_3() {
+        let leaf = Leaf::new(vec!["(", ")", "\n"]);
+        println!("{}", leaf.is_match(&mut LineReaderLexer::new("\n".to_string())));
+        let mut operators = Operators::new();
+        operators.add("=", Precedence::right(1));
+        operators.add("==", Precedence::left(2));
+        operators.add(">", Precedence::left(2));
+        operators.add("<", Precedence::left(2));
+        operators.add("+", Precedence::left(3));
+        operators.add("-", Precedence::left(3));
+        operators.add("*", Precedence::left(4));
+        operators.add("/", Precedence::left(4));
+        operators.add("%", Precedence::left(4));
+        println!("{}",operators.get("==").is_some());
+        println!("{}",operators.get("==").is_some());
+    }
+
+    #[test]
+    fn parer_test_full() {
+        let code = "
+even = 0
+odd = 0
+i  = 1
+while i < 10 {
+	if i % 2 == 0 {
+		even = even + i
+	}else {
+		odd = odd + i
+	}
+	i = i + 1
+}
+even + odd
+        ";
+
+        let mut lexer = LineReaderLexer::new(code.to_string());
+        println!("分词完成");
+        let parser = stone_parser();
+        println!("语法解析器完成");
+
+        let mut err = None;
+        let mut ast_tree_vec: Vec<Box<dyn AstTree>> = vec![];
+        while let Some(token) = lexer.peek(0) {
+            if TokenValue::EOF.eq(token.value()) || err.is_some() {
+                break;
+            }
+            let res_pro = parser.parse(&mut lexer);
+            if res_pro.is_ok() {
+                let res = res_pro.unwrap();
+                ast_tree_vec.push(res);
+            } else {
+                err = Some(res_pro);
+            }
+        }
+        if err.is_some() {
+            let err = err.unwrap();
+            if let Err(err_msg) = err{
+                println!("{}", err_msg);
+            }
+            return;
+        }
+        let res_ast_tree = AstList::new(ast_tree_vec);
+        println!("{}", res_ast_tree.location());
     }
 }
