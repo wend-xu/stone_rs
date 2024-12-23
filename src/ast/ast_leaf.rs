@@ -3,6 +3,7 @@ use crate::token::{Token, TokenValue};
 use crate::{ast_leaf_impl_for, ast_leaf_new_for};
 use std::any::TypeId;
 use std::slice::Iter;
+use crate::util::str_util::wrapper_node_name;
 
 pub struct AstLeaf {
     token: Box<dyn Token>,
@@ -33,8 +34,8 @@ impl AstTree for AstLeaf {
     }
 
     fn location(&self) -> String {
-        // format!("<location line_num:{} , value :{:?}>", self.token.line_number() ,self.token.value())
-        format!("value :{:?}>",self.token.value())
+        let location = format!("<value :{:?}>", self.token.value());
+        wrapper_node_name(location)
     }
 
     fn actual_type_id(&self) -> TypeId {

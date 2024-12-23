@@ -67,6 +67,7 @@ macro_rules! ast_list_new_for {
         pub fn new($field_name: Vec<Box<dyn AstTree>>) -> $node_name {
             $node_name{
                  $field_name:AstList {
+                     node_name:stringify!($node_name),
                      children:$field_name
                  }
             }

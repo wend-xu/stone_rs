@@ -1,22 +1,25 @@
 use std::any::TypeId;
 use crate::ast::ast_tree::AstTree;
-use crate::{ast_list_impl_for, ast_list_new_for,generate};
+use crate::{ast_list_impl_for, ast_list_new_for, generate};
 use std::fmt::Debug;
 use std::slice::Iter;
+use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
 
 pub struct AstList {
+    node_name: &'static str,
     children: Vec<Box<dyn AstTree>>,
 }
 
 impl AstList {
     pub fn new(children: Vec<Box<dyn AstTree>>) -> AstList {
         AstList {
+            node_name:"ast_list",
             children
         }
     }
 }
 
-impl AstTree  for AstList {
+impl AstTree for AstList {
     fn child(&self, index: usize) -> Option<&Box<dyn AstTree>> {
         self.children.get(index)
     }
@@ -30,7 +33,17 @@ impl AstTree  for AstList {
     }
 
     fn location(&self) -> String {
-        "todo ...".to_string()
+        let node_name = wrapper_node_name(self.node_name.to_string());
+        let mut child = self.children();
+
+        let mut sub_block_vec: Vec<String> = vec![];
+        while let Some(child) = child.next() {
+            sub_block_vec.push(child.location());
+        }
+
+        let sub_block = lines_concat_with_divide(sub_block_vec, Some("    "));
+
+        wrapper_sub_block(node_name, sub_block)
     }
 
     fn actual_type_id(&self) -> TypeId {
@@ -41,35 +54,35 @@ impl AstTree  for AstList {
 /// 宏展开生成代码：
 /// generate![BinaryExpr,BlockStmt,IfStmt,NegativeExpr,NullStmt,PrimaryExpr,WhileStmt];
 
-pub struct BinaryExpr{
-    children:AstList
+pub struct BinaryExpr {
+    children: AstList,
 }
 
 impl BinaryExpr {
-    ast_list_new_for!{BinaryExpr}
+    ast_list_new_for! {BinaryExpr}
 }
 
-ast_list_impl_for!{BinaryExpr}
+ast_list_impl_for! {BinaryExpr}
 
 pub struct BlockStmt {
-    children:AstList
+    children: AstList,
 }
 
 impl BlockStmt {
-    ast_list_new_for!{BlockStmt}
+    ast_list_new_for! {BlockStmt}
 }
 
-ast_list_impl_for!{BlockStmt}
+ast_list_impl_for! {BlockStmt}
 
 pub struct IfStmt {
-    children:AstList
+    children: AstList,
 }
 
 impl IfStmt {
-    ast_list_new_for!{IfStmt}
+    ast_list_new_for! {IfStmt}
 }
 
-ast_list_impl_for!{IfStmt}
+ast_list_impl_for! {IfStmt}
 
 
 pub struct NegativeExpr {

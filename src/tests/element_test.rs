@@ -8,8 +8,12 @@ mod element_tests {
     use std::any::{Any, TypeId};
     use std::marker::PhantomData;
     use std::rc::Rc;
+    use crate::ast::ast_leaf::{IdentifierLiteral, StringLiteral};
     use crate::ast::basic_parser::stone_parser;
     use crate::ast::factory::{AstFactory, BinaryExprFactory, IdentifierLiteralFactory};
+    use crate::token::token_identifier::TokenIdentifier;
+    use crate::token::token_string::TokenString;
+    use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
 
     #[test]
     fn match_test() {
@@ -148,5 +152,43 @@ even + odd
             }
             Err(err_msg ) => { println!("语法构建错误： {}", err_msg); }
         }
+    }
+
+    #[test]
+    pub fn concat_test(){
+        let str_vec = vec![
+            "column1row1\ncolumn1row2".to_string(),
+            "column2row1\ncolumn2row2\ncolumn2row3".to_string(),
+            "column3row1\ncolumn3row2".to_string(),
+            "column4row1\ncolumn4row2\ncolumn4row3".to_string(),
+            "column5row1\ncolumn5row2".to_string(),
+            // "第三列第一行".to_string(),
+            // "第四列第一行\n第四列第二行".to_string(),
+        ];
+        println!("{}", lines_concat_with_divide(str_vec,Some("    ")));
+    }
+
+
+    #[test]
+    pub fn concat_test_2(){
+        let string_1 = StringLiteral::new(TokenString::new(1, "hello"));
+        let string_2 =IdentifierLiteral::new(TokenIdentifier::new(1, "+"));
+        let string_3 = StringLiteral::new(TokenString::new(1, "world"));
+        let block = lines_concat_with_divide(vec![string_1.location(), string_2.location(), string_3.location()],Some("    "));
+
+        let root = wrapper_node_name("ast_list".to_string());
+        // println!("{}\n\n\n",root);
+        let block = wrapper_sub_block(root,block);
+
+        println!("{}",block);
+    }
+
+
+    #[test]
+    pub fn concat_test_3(){
+        // println!("{}",wrapper_node_name("ast_list"));
+        let mut a = 0;
+        a = a.max(-1);
+        println!("{}" ,a)
     }
 }
