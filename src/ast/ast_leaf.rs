@@ -39,7 +39,8 @@ impl AstTree for AstLeaf {
     }
 
     fn actual_type_id(&self) -> TypeId {
-        panic!("un support in node type [AstLeaf]")
+        // panic!("un support in node type [AstLeaf]")
+        TypeId::of::<AstLeaf>()
     }
 }
 

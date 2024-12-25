@@ -4,6 +4,8 @@ use crate::ast::parser::Parser;
 use crate::token::TokenValue;
 
 pub fn stone_parser() -> Parser {
+    let reserved = vec!["}",";",TokenValue::literal_eol()];
+
     let mut operators = Operators::new();
     operators.add("=", Precedence::right(1));
     operators.add("==", Precedence::left(2));
@@ -22,7 +24,7 @@ pub fn stone_parser() -> Parser {
         .or(vec![
             &Parser::rule_def().sep(vec!["("]).ast(&expr).sep(vec![")"]).rc(),
             &Parser::rule_def().number(Some(NumberLiteralFactory::new())).rc(),
-            &Parser::rule_def().identifier(Some(IdentifierLiteralFactory::new())).rc(),
+            &Parser::rule_def().identifier(Some(IdentifierLiteralFactory::new()),reserved).rc(),
             &Parser::rule_def().string(Some(StringLiteralFactory::new())).rc()
         ]).rc();
 

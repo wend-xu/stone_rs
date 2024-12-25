@@ -10,6 +10,7 @@ use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
 use std::io::Write;
+use crate::util::dev_util::print_and_flush;
 
 pub const MATCH_COMMENT: &str = "//.";
 pub const MATCH_IDENTIFIER: &str = r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[+\-*/%=\\|&,.!?(){}\[\]><:]"#;

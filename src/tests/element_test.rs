@@ -12,6 +12,7 @@ mod element_tests {
     use crate::token::token_string::TokenString;
     use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
     use std::any::{Any, TypeId};
+    use std::fmt::format;
     use std::rc::Rc;
     use crate::lexer::lexer::Lexer;
     use crate::token::TokenValue;
@@ -35,7 +36,7 @@ mod element_tests {
         let code = "code".to_string();
         let mut lexer = LineReaderLexer::new(code);
         let factory = IdentifierLiteralFactory::new();
-        let x = IdToken::new(Some(factory));
+        let x = IdToken::new(Some(factory),vec![]);
         let mut res: Vec<Box<dyn AstTree>> = vec![];
         x.parse(&mut lexer, &mut res);
         println!("{}", res.get(0).unwrap().location());
@@ -202,32 +203,55 @@ while i < 10 {
     #[test]
     fn parer_test_full() {
         let code = "
-even = 0
-odd = 0
-i  = 1
 while i < 10 {
-	if i % 2 == 0 {
-		even = even + i
-	}else {
-		odd = odd + i
-	}
-	i = i + 1
+if i % 2 == 0 {
+    even = even + i
+}else {
+    odd = odd + i
 }
-even + odd
+i = i + 1
+}
         ";
 
         let mut lexer = LineReaderLexer::new(code.to_string());
         println!("分词完成");
         let parser = stone_parser();
         println!("语法解析器完成");
+        _p_res(&mut lexer,&parser) ;
+    }
 
+    #[test]
+    fn if_else_test() {
+        let code = "
+}
+        ";
+
+        let mut lexer = LineReaderLexer::new(code.to_string());
+        println!("分词完成 \n {}",lexer);
+        let parser = stone_parser();
+        println!("语法解析器完成");
+        _p_res(&mut lexer,&parser) ;
+    }
+
+    #[test]
+    fn if_else_test_2() {
+        let parser = Parser::rule_def().sep(vec!["else"]);
+        let mut lexer = LineReaderLexer::new("else else if else".to_string());
+        _p_res(&mut lexer,&parser)
+    }
+
+    fn _p_res(lexer:&mut dyn Lexer, parser:&Parser) {
         let mut err = None;
         let mut ast_tree_vec: Vec<Box<dyn AstTree>> = vec![];
         while let Some(token) = lexer.peek(0) {
             if TokenValue::EOF.eq(token.value()) || err.is_some() {
                 break;
             }
-            let res_pro = parser.parse(&mut lexer);
+            if !parser.is_match(lexer) {
+                err = Some(Err(format!("无法处理的token： {:?}",lexer.read().unwrap().value())));
+                break;
+            }
+            let res_pro = parser.parse(lexer);
             if res_pro.is_ok() {
                 let res = res_pro.unwrap();
                 ast_tree_vec.push(res);

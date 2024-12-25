@@ -109,7 +109,7 @@ impl Element for Repeat {
             ///
             /// 故进入while 循环后的判定条件：  不为AstList(不可执行无意义) 子节点是数为0(实际未匹配可执行内容)
             let tree_node = parser_borrow.parse(lexer)?;
-            if tree_node.actual_type_id() == TypeId::of::<AstList>() || tree_node.num_children() > 0 {
+            if tree_node.num_children() > 0 || tree_node.actual_type_id() == TypeId::of::<AstList>() {
                 res.push(tree_node);
             }
             if self.only_once {
@@ -126,9 +126,47 @@ impl Element for Repeat {
 
 
 /// 终结符的实现都是一样的，使用宏定义
-ast_impl_element_terminal! {IdToken,IdentifierLiteral,IdentifierLiteralFactory}
+// ast_impl_element_terminal! {IdToken,IdentifierLiteral,IdentifierLiteralFactory}
 ast_impl_element_terminal! {StrToken,StringLiteral,StringLiteralFactory}
 ast_impl_element_terminal! {NumToken, NumberLiteral,NumberLiteralFactory}
+pub struct IdToken {
+    reserved:Vec<TokenValue>,
+    factory: Box<dyn AstLeafFactory>,
+}
+impl IdToken {
+    pub fn new(factory: Option<Box<dyn AstLeafFactory>>,vec:Vec<&str>) -> Box<Self> {
+        let factory = match factory {
+            None => { IdentifierLiteralFactory::new() }
+            Some(factory) => { factory }
+        };
+        let reserved = vec.iter().map(|id| TokenValue::IDENTIFIER(id.to_string()) ).collect();
+        Box::new(IdToken { factory,reserved })
+    }
+
+    pub fn new_def(vec:Vec<&str>) -> Box<Self> {
+        Self::new(None,vec)
+    }
+}
+impl Element for IdToken {
+    fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
+        let read = lexer.read().unwrap();
+        res.push(IdentifierLiteral::new(read));
+        Ok(())
+    }
+
+    fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
+        let peek = lexer.peek(0);
+        if let None = peek {
+            return false;
+        }
+        let box_token= peek.unwrap();
+        if self.reserved.contains(box_token.value()) {
+            false
+        }else{
+            IdentifierLiteral::is_match(box_token)
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Leaf {
@@ -176,7 +214,9 @@ impl Skip {
 
 impl Element for Skip {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        self.leaf.parse(lexer, res)
+        // self.leaf.parse(lexer, res)
+        lexer.read();
+        Ok(())
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {

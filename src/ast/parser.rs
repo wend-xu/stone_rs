@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::cell::RefCell;
 use crate::ast::ast_tree::AstTree;
 use crate::ast::element::{Element, Expr, IdToken, Leaf, NumToken, Operators, OrTree, Repeat, Skip, StrToken, Tree};
@@ -53,8 +54,8 @@ impl Parser {
         self
     }
 
-    pub fn identifier(mut self, factory: Option<Box<dyn AstLeafFactory>>) -> Self {
-        self.elements.push(IdToken::new(factory));
+    pub fn identifier(mut self, factory: Option<Box<dyn AstLeafFactory>>, reserved:Vec<&str>) -> Self {
+        self.elements.push(IdToken::new(factory,reserved));
         self
     }
 
