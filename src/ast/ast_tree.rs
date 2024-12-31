@@ -1,5 +1,6 @@
 use std::any::TypeId;
 use std::slice::Iter;
+use crate::ast::eval::Evaluate;
 
 pub trait AstTree {
     fn child(&self, index: usize) -> Option<&Box<dyn AstTree>>;
@@ -11,6 +12,10 @@ pub trait AstTree {
     fn location(&self) -> String;
 
     fn actual_type_id(&self) -> TypeId;
+
+    fn eval(&self) -> Box<&dyn Evaluate> {
+        panic!("not a eval")
+    }
 }
 
 

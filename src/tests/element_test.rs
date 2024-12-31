@@ -7,21 +7,20 @@ mod element_tests {
     use crate::ast::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree, Precedence};
     use crate::ast::factory::{BinaryExprFactory, IdentifierLiteralFactory};
     use crate::ast::parser::Parser;
+    use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use crate::token::token_identifier::TokenIdentifier;
     use crate::token::token_string::TokenString;
+    use crate::token::TokenValue;
     use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
     use std::any::{Any, TypeId};
-    use std::fmt::format;
     use std::rc::Rc;
-    use crate::lexer::lexer::Lexer;
-    use crate::token::TokenValue;
 
     #[test]
     fn match_test() {
         let ast_list = AstList::new(vec![]);
 
-        let mut vec_dyn_token: Vec<Box<dyn AstTree>> = vec![Box::new(ast_list)];
+        let vec_dyn_token: Vec<Box<dyn AstTree>> = vec![Box::new(ast_list)];
 
         let box_token = vec_dyn_token.get(0).unwrap();
 
@@ -203,14 +202,18 @@ while i < 10 {
     #[test]
     fn parer_test_full() {
         let code = "
+even = 0
+odd = 0
+i  = 1
 while i < 10 {
-if i % 2 == 0 {
-    even = even + i
-}else {
-    odd = odd + i
+	if i % 2 == 0 {
+		even = even + i
+	}else {
+		odd = odd + i
+	}
+	i = i + 1
 }
-i = i + 1
-}
+even + odd
         ";
 
         let mut lexer = LineReaderLexer::new(code.to_string());

@@ -2,9 +2,9 @@
 mod line_reader_lexer_text {
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::*;
+    use crate::token::Token;
     use regex::Regex;
     use std::time::SystemTime;
-    use crate::token::Token;
 
     #[test]
     pub fn test_matcher_string() {
@@ -138,8 +138,8 @@ mod line_reader_lexer_text {
         let match_line_regex: Regex = Regex::new(match_line.as_str()).unwrap();
 
         let start = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
-        for i in 0..10000 {
-            let lexer = LineReaderLexer::new_with_regex(test_code.to_string(), match_line_regex.clone());
+        for _i in 0..10000 {
+            let _lexer = LineReaderLexer::new_with_regex(test_code.to_string(), match_line_regex.clone());
         }
         let end = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
         println!("耗时 {} ", end - start);

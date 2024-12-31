@@ -8,9 +8,7 @@ use crate::util::regex_util::get_from_captures;
 use regex::{Captures, Regex};
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Formatter};
-use std::io;
 use std::io::Write;
-use crate::util::dev_util::print_and_flush;
 
 pub const MATCH_COMMENT: &str = "//.";
 pub const MATCH_IDENTIFIER: &str = r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[+\-*/%=\\|&,.!?(){}\[\]><:]"#;
@@ -38,7 +36,7 @@ impl MatchNames {
             "number" => MatchNames::Number,
             "string" => MatchNames::String,
             "identifier" => MatchNames::Identifier,
-            /// 未知的字面量类型不应该存在，直接 panic
+            // 未知的字面量类型不应该存在，直接 panic
             _ => panic!("[MatchNames] not exist type literal is {literal}"),
         }
     }
@@ -176,7 +174,7 @@ impl Lexer for LineReaderLexer {
     }
 
     fn peek(&mut self, index: usize) -> Option<&Box<dyn Token>> {
-        let mut try_read_line = false;
+        let mut try_read_line;
         {
             let option = self.token_queue.get(index);
             try_read_line = option.is_none();

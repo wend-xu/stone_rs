@@ -18,8 +18,8 @@ impl TokenNumber {
     }
 
     pub fn new_literal(line_number: usize, number_literal: &str) -> Box<TokenNumber> {
-        /// 这是一个转换数字字面量错误的情况，
-        /// 这种情况说明分词出了问题，故属于分词器实现的错误，直接 panic 掉
+        // 这是一个转换数字字面量错误的情况，
+        // 这种情况说明分词出了问题，故属于分词器实现的错误，直接 panic 掉
         let number = match number_literal.parse::<isize>() {
             Ok(value) => { value }
             Err(_) => {

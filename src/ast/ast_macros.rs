@@ -1,3 +1,6 @@
+use crate::ast::eval::EvalRes;
+use crate::token::TokenValue;
+
 #[macro_export]
 macro_rules! ast_leaf_new_for {
     ($node_name:ident, $token_value_type:ident) => {
@@ -22,6 +25,10 @@ macro_rules! ast_leaf_new_for {
                 TokenValue::$token_value_type(_) => { true }
                 _ => { false }
             }
+        }
+
+        pub fn leaf_val(&self) -> &TokenValue{
+            self.ast_leaf.token.value()
         }
     }
 }
@@ -52,6 +59,10 @@ macro_rules! ast_leaf_impl_for {
 
             fn actual_type_id(&self) -> TypeId {
                 TypeId::of::<$node_name>()
+            }
+
+            fn eval(&self) -> Box<&dyn Evaluate> {
+                Box::new(self)
             }
        }
     };
@@ -201,5 +212,27 @@ macro_rules! ast_impl_list_factory {
               Box::new($node_name::new(res))
           }
       }
+   }
+}
+
+
+#[macro_export]
+macro_rules! number_compute {
+   ( $left:ident, $right:ident, $op:ident; [$($op_calc:tt),+]; [$($op_eq:tt),+]) => {
+        match $op {
+        $(
+            stringify!($op_calc) => {
+                EvalRes::NUMBER($left $op_calc $right)
+            }
+        )+
+        $(
+            stringify!($op_eq) => {
+                EvalRes::BOOLEAN($left $op_eq $right)
+            }
+        )+
+            &_ => {
+                panic!("[BinaryExpr] {} is not legal operator",$op)
+            }
+        }
    }
 }

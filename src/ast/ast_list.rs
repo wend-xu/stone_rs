@@ -1,9 +1,10 @@
-use std::any::TypeId;
 use crate::ast::ast_tree::AstTree;
-use crate::{ast_list_impl_for, ast_list_new_for, generate};
+use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
+use crate::{ast_list_impl_for, ast_list_new_for};
+use std::any::TypeId;
 use std::fmt::Debug;
 use std::slice::Iter;
-use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
+use crate::ast::eval::Evaluate;
 
 pub struct AstList {
     node_name: &'static str,
@@ -62,7 +63,31 @@ impl BinaryExpr {
     ast_list_new_for! {BinaryExpr}
 }
 
-ast_list_impl_for! {BinaryExpr}
+impl AstTree for BinaryExpr {
+    fn child(&self, index: usize) -> Option<&Box<dyn AstTree>> {
+        self.children.child(index)
+    }
+
+    fn num_children(&self) -> usize {
+        self.children.num_children()
+    }
+
+    fn children(&self) -> Iter<Box<dyn AstTree>> {
+        self.children.children()
+    }
+
+    fn location(&self) -> String {
+        self.children.location()
+    }
+
+    fn actual_type_id(&self) -> TypeId {
+        TypeId::of::<BinaryExpr>()
+    }
+
+    fn eval(&self) -> Box<&dyn Evaluate> {
+        Box::new(self)
+    }
+}
 
 pub struct BlockStmt {
     children: AstList,
@@ -110,6 +135,7 @@ impl PrimaryExpr {
     ast_list_new_for! { PrimaryExpr }
 }
 ast_list_impl_for! { PrimaryExpr }
+
 
 
 pub struct WhileStmt {
