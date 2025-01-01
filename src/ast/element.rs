@@ -130,21 +130,21 @@ impl Element for Repeat {
 ast_impl_element_terminal! {StrToken,StringLiteral,StringLiteralFactory}
 ast_impl_element_terminal! {NumToken, NumberLiteral,NumberLiteralFactory}
 pub struct IdToken {
-    reserved:Vec<TokenValue>,
+    reserved: Vec<TokenValue>,
     factory: Box<dyn AstLeafFactory>,
 }
 impl IdToken {
-    pub fn new(factory: Option<Box<dyn AstLeafFactory>>,vec:Vec<&str>) -> Box<Self> {
+    pub fn new(factory: Option<Box<dyn AstLeafFactory>>, vec: Vec<&str>) -> Box<Self> {
         let factory = match factory {
             None => { IdentifierLiteralFactory::new() }
             Some(factory) => { factory }
         };
-        let reserved = vec.iter().map(|id| TokenValue::IDENTIFIER(id.to_string()) ).collect();
-        Box::new(IdToken { factory,reserved })
+        let reserved = vec.iter().map(|id| TokenValue::IDENTIFIER(id.to_string())).collect();
+        Box::new(IdToken { factory, reserved })
     }
 
-    pub fn new_def(vec:Vec<&str>) -> Box<Self> {
-        Self::new(None,vec)
+    pub fn new_def(vec: Vec<&str>) -> Box<Self> {
+        Self::new(None, vec)
     }
 }
 impl Element for IdToken {
@@ -159,10 +159,10 @@ impl Element for IdToken {
         if let None = peek {
             return false;
         }
-        let box_token= peek.unwrap();
+        let box_token = peek.unwrap();
         if self.reserved.contains(box_token.value()) {
             false
-        }else{
+        } else {
             IdentifierLiteral::is_match(box_token)
         }
     }

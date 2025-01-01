@@ -12,7 +12,7 @@ use crate::token::TokenValue;
 pub enum EvalRes {
     NUMBER(isize),
     StringVal(String),
-    IDENTIFIER(String),
+    NAME(String),
     BOOLEAN(bool),
     Struct(Vec<EvalRes>),
     VOID,
@@ -29,7 +29,7 @@ impl EvalRes {
     fn to_string(&self) -> String {
         match self {
             EvalRes::StringVal(string) => { string.clone() }
-            EvalRes::IDENTIFIER(id) => { id.clone() }
+            EvalRes::NAME(id) => { id.clone() }
             EvalRes::BOOLEAN(boolean) => { boolean.to_string() }
             EvalRes::NUMBER(num) => { num.to_string() }
             _ => { panic!("{:?} could‘t be str", self); }
@@ -52,7 +52,7 @@ impl EvalRes {
 
     fn is_identifier(&self) -> bool {
         match self {
-            EvalRes::IDENTIFIER(_) => { true }
+            EvalRes::NAME(_) => { true }
             _ => { false }
         }
     }
@@ -61,7 +61,7 @@ impl EvalRes {
 impl PartialEq<str> for EvalRes {
     fn eq(&self, other: &str) -> bool {
         match self {
-            EvalRes::IDENTIFIER(id) => { id.as_str() == other }
+            EvalRes::NAME(id) => { id.as_str() == other }
             EvalRes::StringVal(str) => { str.as_str() == other }
             EvalRes::NUMBER(_) => { false }
             EvalRes::BOOLEAN(_) => { false }
@@ -73,15 +73,15 @@ impl PartialEq<str> for EvalRes {
 
 
 pub trait Evaluate {
-    fn do_eval(&self, env: &EnvWrapper) -> Result<EvalRes, String>;
+    fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String>;
 }
 
 impl Evaluate for IdentifierLiteral {
-    fn do_eval(&self, env: &EnvWrapper) -> Result<EvalRes, String> {
+    fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
         let token = self.leaf_val();
         let eval_res = match token {
             TokenValue::IDENTIFIER(id) => {
-                EvalRes::IDENTIFIER(id.clone())
+                EvalRes::NAME(id.clone())
             }
             _ => {
                 panic!("[IdentifierLiteral] hold token must a TokenValue::IDENTIFIER , not match \n error may occur in build AstTree")
@@ -92,7 +92,7 @@ impl Evaluate for IdentifierLiteral {
 }
 
 impl Evaluate for StringLiteral {
-    fn do_eval(&self, env: &EnvWrapper) -> Result<EvalRes, String> {
+    fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
         let token = self.leaf_val();
         let eval_res = match token {
             TokenValue::StringVal(id) => {
@@ -107,7 +107,7 @@ impl Evaluate for StringLiteral {
 }
 
 impl Evaluate for NumberLiteral {
-    fn do_eval(&self, env: &EnvWrapper) -> Result<EvalRes, String> {
+    fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
         let token = self.leaf_val();
         let eval_res = match token {
             TokenValue::NUMBER(id) => {
@@ -122,24 +122,27 @@ impl Evaluate for NumberLiteral {
 }
 
 impl BinaryExpr {
-    fn get_binary_part(&self, index: usize, err_part: &str) -> Result<&Box<dyn AstTree>, String> {
+    fn get_binary_part(&self, env: &mut EnvWrapper, index: usize, err_part: &str) -> Result<EvalRes, String> {
         let tree_node_op = self.child(index);
         match tree_node_op {
             None => { Err(format!("[BinaryExpr] {} is None", err_part)) }
-            Some(tree_node) => { Ok(tree_node) }
+            Some(tree_node) => {
+                let eval_res = tree_node.eval().do_eval(env)?;
+                Ok(eval_res)
+            }
         }
     }
 
-    fn left(&self) -> Result<&Box<dyn AstTree>, String> {
-        self.get_binary_part(0, "left")
+    fn left(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
+        self.get_binary_part(env, 0, "left")
     }
 
-    fn right(&self) -> Result<&Box<dyn AstTree>, String> {
-        self.get_binary_part(2, "right")
+    fn right(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
+        self.get_binary_part(env, 2, "right")
     }
 
-    fn operator(&self) -> Result<&Box<dyn AstTree>, String> {
-        self.get_binary_part(1, "operator")
+    fn operator(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
+        self.get_binary_part(env, 1, "operator")
     }
 
     fn compute_number(&self, left: &isize, operator: String, right: &isize) -> Result<EvalRes, String> {
@@ -148,9 +151,13 @@ impl BinaryExpr {
         Ok(number_compute! {left,right,operator;[+,-,*,/,%];[==,>,<]})
     }
 
-    fn compute_assign(&self, left_val: EvalRes, env: &EnvWrapper, right_val: EvalRes) -> Result<EvalRes, String> {
+    fn compute_assign(&self, left_val: EvalRes, env: &mut EnvWrapper, right: EvalRes) -> Result<EvalRes, String> {
+        let right_val = if right.is_identifier() {
+            Self::compute_substitution(&right, env)?.clone()
+        } else { right };
+
         match left_val {
-            EvalRes::IDENTIFIER(name) => {
+            EvalRes::NAME(name) => {
                 env.put(name.clone(), right_val)?;
                 Ok(EvalRes::VOID)
             }
@@ -158,7 +165,7 @@ impl BinaryExpr {
         }
     }
 
-    fn compute_op(&self,left: &EvalRes, operator: &EvalRes, right: &EvalRes) -> Result<EvalRes, String> {
+    fn compute_op(&self, left: &EvalRes, operator: &EvalRes, right: &EvalRes) -> Result<EvalRes, String> {
         if left.is_number() && right.is_number() {
             self.compute_number(left.to_number(), operator.to_string(), right.to_number())
         } else if operator == "+" {
@@ -169,17 +176,30 @@ impl BinaryExpr {
             panic!("[BinaryExpr] bad operator {:?}", operator)
         }
     }
+
+    fn compute_substitution<'a>(eval_res: &'a EvalRes, env: &'a EnvWrapper) -> Result<&'a EvalRes, String> {
+        match eval_res {
+            EvalRes::NAME(name) => {
+                env.get_ref(name)
+            }
+            _ => { Ok(eval_res) }
+        }
+    }
 }
 
 impl Evaluate for BinaryExpr {
-    fn do_eval(&self, env: &EnvWrapper) -> Result<EvalRes, String> {
-        let operator = self.operator()?.eval().do_eval(env)?;
-        let right = self.right()?.eval().do_eval(env)?;
-        let left = self.left()?.eval().do_eval(env)?;
+    fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
+        let operator = self.operator(env)?;
+        let right = self.right(env)?;
+        let left = self.left(env)?;
+
         if &operator == "=" {
+            // let right_val =  Self::compute_substitution(&right, env)?.clone();
             self.compute_assign(left, env, right)
         } else {
-            self.compute_op( &left, &operator, &right)
+            let left_val = Self::compute_substitution(&left, env)?;
+            let right_val = Self::compute_substitution(&right, env)?;
+            self.compute_op(left_val, &operator, right_val)
         }
     }
 }

@@ -3,11 +3,13 @@ mod eval_tests {
     use std::any::TypeId;
     use TokenValue::IDENTIFIER;
     use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral};
+    use crate::ast::ast_list::NullStmt;
     use crate::ast::eval::{EvalRes, Evaluate};
     use crate::token::token_identifier::TokenIdentifier;
     use crate::ast::ast_tree::AstTree;
     use crate::ast::basic_parser::stone_parser;
-    use crate::ast::environment::{EnvWrapper, MapEnv};
+    use crate::ast::environment::{Env, EnvWrapper, MapEnv};
+    use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use crate::token::TokenValue;
 
@@ -22,46 +24,53 @@ mod eval_tests {
         let value = IDENTIFIER("=".to_string());
         let eq = &value == "=";
         println!("{}", eq);
-        let wrapper = EnvWrapper::new();
+        let mut wrapper = EnvWrapper::new();
         let literal = IdentifierLiteral::new(TokenIdentifier::new(0, "i"));
-        let res = literal.eval().do_eval(&wrapper).unwrap();
+        let res = literal.eval().do_eval(&mut wrapper).unwrap();
         println!("{:?}",res);
     }
 
     #[test]
     fn env_test(){
-        let wrapper = EnvWrapper::new();
+        let mut wrapper = EnvWrapper::new();
         let wrapper1 = EnvWrapper::new_with(MapEnv::new());
-        let code = "i+1".to_string();
+        let code = "i = 2 ; i = i+\" love u\"".to_string();
         let mut lexer = LineReaderLexer::new(code);
+        // while let Some(tk) = lexer.read() {
+        //     println!("{:?}", tk.value());
+        // }
+
         let parser = stone_parser();
-        let tree_res = parser.parse(&mut lexer);
-        let tree = match tree_res {
-            Ok(tree) => {
-                tree
+        while let Some(_) = lexer.peek(0) {
+            println!("peek : {:?}",lexer.peek(0).unwrap().value());
+            let tree_res  = parser.parse(&mut lexer);
+            let tree = match tree_res {
+                Ok(tree) => {
+                    tree
+                }
+                Err(msg) => {
+                    panic!("{}", msg);
+                }
+            };
+            let is_null_sata = tree.actual_type_id() == TypeId::of::<NullStmt>();
+            println!("location:\n{}", tree.location());
+            println!("location:\n{}", is_null_sata);
+            if is_null_sata {
+                continue;
             }
-            Err(msg) => {
-                panic!("{}", msg);
-            }
-        };
-        println!("{}", tree.location());
-        println!("type {}", tree.child(0).unwrap().actual_type_id() == TypeId::of::<AstLeaf>());
-        println!("type {}", tree.child(0).unwrap().actual_type_id() == TypeId::of::<IdentifierLiteral>());
-
-        println!("type {}", tree.child(1).unwrap().actual_type_id() == TypeId::of::<AstLeaf>());
-        println!("type {}", tree.child(1).unwrap().actual_type_id() == TypeId::of::<IdentifierLiteral>());
-
-        println!("type {}", tree.child(2).unwrap().actual_type_id() == TypeId::of::<AstLeaf>());
-        println!("type {}", tree.child(2).unwrap().actual_type_id() == TypeId::of::<NumberLiteral>());
-        let eval = tree.eval();
-        let eval_res_res = eval.do_eval(&wrapper);
-        match eval_res_res {
-            Ok(eval_res) => {
-                println!("{:?}",eval_res)
-            }
-            Err(err) => {
-                panic!("Eval error: {:?}", err);
+            let eval = tree.eval();
+            let eval_res_res = eval.do_eval(&mut wrapper);
+            match eval_res_res {
+                Ok(eval_res) => {
+                    println!("{:?}",eval_res);
+                }
+                Err(err) => {
+                    panic!("Eval error: {:?}", err);
+                }
             }
         }
+
+        println!("{:?}",wrapper.get_ref("i").unwrap());
+
     }
 }

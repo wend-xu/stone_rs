@@ -215,7 +215,6 @@ while i < 10 {
 }
 even + odd
         ";
-
         let mut lexer = LineReaderLexer::new(code.to_string());
         println!("分词完成");
         let parser = stone_parser();

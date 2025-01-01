@@ -15,6 +15,16 @@ impl TokenValue {
         "\n"
     }
 
+    pub fn to_string(&self) -> String{
+        match self {
+            TokenValue::EOF => { "EOF".to_string() }
+            TokenValue::EOL => { "\n".to_string() }
+            TokenValue::IDENTIFIER(id) => { id.clone() } ,
+            TokenValue::NUMBER(num) => { num.to_string() },
+            TokenValue::StringVal(str) => { str.clone() },
+        }
+    }
+
     pub fn is_number(&self) -> bool {
         match self {
             TokenValue::NUMBER(_) => {true}

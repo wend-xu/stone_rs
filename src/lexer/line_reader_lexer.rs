@@ -11,7 +11,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::io::Write;
 
 pub const MATCH_COMMENT: &str = "//.";
-pub const MATCH_IDENTIFIER: &str = r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[+\-*/%=\\|&,.!?(){}\[\]><:]"#;
+pub const MATCH_IDENTIFIER: &str = r#"[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\|\||[+\-*/%=\\|&,.!?(){}\[\]><:;]"#;
 pub const MATCH_NUMBER: &str = r"[0-9]+";
 pub const MATCH_STRING: &str = r#""((?:\\"|\\\\|\\n|[^"\\])*)""#;
 
