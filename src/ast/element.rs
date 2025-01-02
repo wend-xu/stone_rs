@@ -234,16 +234,17 @@ impl Element for Skip {
 ///     + 加法运算，左结合
 #[derive(Debug)]
 pub struct Precedence {
+    name: &'static str,
     value: usize,
     left_assoc: bool,
 }
 
 impl Precedence {
-    pub fn left(value: usize) -> Precedence {
-        Precedence { value, left_assoc: true }
+    pub fn left(name: &'static str, value: usize) -> Precedence {
+        Precedence { name, value, left_assoc: true }
     }
-    pub fn right(value: usize) -> Precedence {
-        Precedence { value, left_assoc: false }
+    pub fn right(name: &'static str, value: usize) -> Precedence {
+        Precedence { name, value, left_assoc: false }
     }
 }
 
@@ -258,8 +259,8 @@ impl Operators {
         }
     }
 
-    pub fn add(&mut self, name: &str, precedence: Precedence) -> &Self {
-        self.operators.insert(name.to_string(), Rc::new(precedence));
+    pub fn add(&mut self, precedence: Precedence) -> &Self {
+        self.operators.insert(precedence.name.to_string(), Rc::new(precedence));
         self
     }
 
@@ -312,9 +313,11 @@ impl Expr {
         let mut res = vec![left, operator];
 
         let mut right = self.factor.borrow_mut().parse(lexer)?;
+        let mut count = 1;
         while let Some(ref op) = self._next_operator(lexer) {
             let do_shift = self._right_is_expr(precedence.as_ref(), op.as_ref());
-            right = if do_shift { self._do_shift(lexer, right, precedence)? } else { right };
+            right = if do_shift { self._do_shift(lexer, right, op)? } else { right };
+            count = count + 1;
             if !do_shift {
                 break;
             }
