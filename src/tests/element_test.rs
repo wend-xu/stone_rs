@@ -187,15 +187,15 @@ while i < 10 {
         let leaf = Leaf::new(vec!["(", ")", "\n"]);
         println!("{}", leaf.is_match(&mut LineReaderLexer::new("\n".to_string())));
         let mut operators = Operators::new();
-        operators.add("=", Precedence::right(1));
-        operators.add("==", Precedence::left(2));
-        operators.add(">", Precedence::left(2));
-        operators.add("<", Precedence::left(2));
-        operators.add("+", Precedence::left(3));
-        operators.add("-", Precedence::left(3));
-        operators.add("*", Precedence::left(4));
-        operators.add("/", Precedence::left(4));
-        operators.add("%", Precedence::left(4));
+        operators.add(Precedence::right("=", 1));
+        operators.add(Precedence::left("==", 2));
+        operators.add(Precedence::left(">", 2));
+        operators.add(Precedence::left("<", 2));
+        operators.add(Precedence::left("+", 3));
+        operators.add(Precedence::left("-", 3));
+        operators.add(Precedence::left("*", 4));
+        operators.add(Precedence::left("/", 4));
+        operators.add(Precedence::left("%", 4));
         println!("{}",operators.get("==").is_some());
         println!("{}",operators.get("==").is_some());
     }
@@ -223,7 +223,7 @@ i = i + 1
     #[test]
     fn if_else_test() {
         let code = "
-}
+i = 3*2(1+1)
         ";
 
         let mut lexer = LineReaderLexer::new(code.to_string());
