@@ -312,7 +312,7 @@ impl Expr {
         let operator = AstLeaf::new(lexer.read().unwrap());
         let mut res = vec![left, operator];
 
-        let mut right = self.factor.borrow_mut().parse(lexer)?;
+        let mut right = self.factor.borrow().parse(lexer)?;
         let mut count = 1;
         while let Some(ref op) = self._next_operator(lexer) {
             let do_shift = self._right_is_expr(precedence.as_ref(), op.as_ref());
@@ -373,7 +373,7 @@ impl Expr {
 
 impl Element for Expr {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
-        let mut right = self.factor.borrow_mut().parse(lexer)?;
+        let mut right =  self.factor.borrow().parse(lexer)?;
         while let Some(precedence) = self._next_operator(lexer) {
             right = self._do_shift(lexer, right, &precedence)?;
         }
@@ -382,6 +382,6 @@ impl Element for Expr {
     }
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
-        self.factor.borrow_mut().is_match(lexer)
+        self.factor.borrow().is_match(lexer)
     }
 }
