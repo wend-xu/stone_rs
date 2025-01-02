@@ -125,7 +125,7 @@ impl Element for Repeat {
 }
 
 
-/// 终结符的实现都是一样的，使用宏定义
+// 终结符的实现都是一样的，使用宏定义
 // ast_impl_element_terminal! {IdToken,IdentifierLiteral,IdentifierLiteralFactory}
 ast_impl_element_terminal! {StrToken,StringLiteral,StringLiteralFactory}
 ast_impl_element_terminal! {NumToken, NumberLiteral,NumberLiteralFactory}
@@ -309,7 +309,7 @@ impl Expr {
 
     /// 预读运算符，根据预读运算符判定是继续往下 shift 还是返回
     fn _do_shift(&self, lexer: &mut dyn Lexer, left: Box<dyn AstTree>, precedence: &Rc<Precedence>) -> Result<Box<dyn AstTree>, String> {
-        let operator = AstLeaf::new(lexer.read().unwrap());
+        let operator = IdentifierLiteral::new(lexer.read().unwrap());
         let mut res = vec![left, operator];
 
         let mut right = self.factor.borrow().parse(lexer)?;

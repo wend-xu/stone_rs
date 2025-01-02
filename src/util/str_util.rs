@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 /// 字符串按行拼接
 ///
 pub fn lines_concat(str_vec: Vec<String>) -> String {

@@ -6,3 +6,5 @@ pub mod ast_list;
 pub mod ast_tree;
 pub mod factory;
 pub mod basic_parser;
+pub mod eval;
+pub mod environment;
