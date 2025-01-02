@@ -236,3 +236,14 @@ macro_rules! number_compute {
         }
    }
 }
+
+#[macro_export]
+macro_rules! ternary {
+    ($condition:expr , $expr_true:expr , $expr_false:expr) => {
+        if $condition {
+            $expr_true
+        }else{
+            $expr_false
+        }
+    };
+}

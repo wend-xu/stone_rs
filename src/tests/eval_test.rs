@@ -33,16 +33,23 @@ mod eval_tests {
     #[test]
     fn env_test(){
         let mut wrapper = EnvWrapper::new();
-        let wrapper1 = EnvWrapper::new_with(MapEnv::new());
-        let code = "i = 2 ; i = i+\" love u\"".to_string();
-        let mut lexer = LineReaderLexer::new(code);
-        // while let Some(tk) = lexer.read() {
-        //     println!("{:?}", tk.value());
-        // }
+        let code = r#"
+i = 2 ;
+i = i+ " love u";
+j = 6
+j = j + 10 % 3
+k = j * 3 +1-j/2*(j+1)
+"#.to_string();
+        _eval(code, &mut wrapper);
+        println!(" i = {:?}",wrapper.get_ref("i").unwrap());
+        println!(" j = {:?}",wrapper.get_ref("j").unwrap());
+        println!(" k = {:?}",wrapper.get_ref("k").unwrap());
+    }
 
+    fn _eval(code:String, env:&mut EnvWrapper){
+        let mut lexer = LineReaderLexer::new(code);
         let parser = stone_parser();
         while let Some(_) = lexer.peek(0) {
-            println!("peek : {:?}",lexer.peek(0).unwrap().value());
             let tree_res  = parser.parse(&mut lexer);
             let tree = match tree_res {
                 Ok(tree) => {
@@ -54,23 +61,21 @@ mod eval_tests {
             };
             let is_null_sata = tree.actual_type_id() == TypeId::of::<NullStmt>();
             println!("location:\n{}", tree.location());
-            println!("location:\n{}", is_null_sata);
+            // println!("location:\n{}", is_null_sata);
             if is_null_sata {
                 continue;
             }
             let eval = tree.eval();
-            let eval_res_res = eval.do_eval(&mut wrapper);
+            let eval_res_res = eval.do_eval(env);
             match eval_res_res {
                 Ok(eval_res) => {
-                    println!("{:?}",eval_res);
+                    // println!("{:?}",eval_res);
                 }
                 Err(err) => {
                     panic!("Eval error: {:?}", err);
                 }
             }
         }
-
-        println!("{:?}",wrapper.get_ref("i").unwrap());
 
     }
 }
