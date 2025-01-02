@@ -1,6 +1,6 @@
-use crate::ast::element::{Operators, Precedence};
-use crate::ast::factory::{BinaryExprFactory, BlockStmtFactory, IdentifierLiteralFactory, IfStmtFactory, NegativeExprFactory, NullStmtFactory, NumberLiteralFactory, PrimaryExprFactory, StringLiteralFactory, WhileStmtFactory};
-use crate::ast::parser::Parser;
+use crate::parser::element::{Operators, Precedence};
+use crate::parser::factory::{BinaryExprFactory, BlockStmtFactory, IdentifierLiteralFactory, IfStmtFactory, NegativeExprFactory, NullStmtFactory, NumberLiteralFactory, PrimaryExprFactory, StringLiteralFactory, WhileStmtFactory};
+use crate::parser::parser::Parser;
 use crate::token::TokenValue;
 
 pub fn stone_parser() -> Parser {

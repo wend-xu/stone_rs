@@ -11,6 +11,8 @@ mod token;
 mod tests;
 mod util;
 mod ast;
+mod parser;
+mod eval;
 
 fn main() {
     println!("Hello, world!");

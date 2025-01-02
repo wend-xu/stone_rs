@@ -3,10 +3,10 @@ mod element_tests {
     use crate::ast::ast_leaf::{IdentifierLiteral, StringLiteral};
     use crate::ast::ast_list::AstList;
     use crate::ast::ast_tree::AstTree;
-    use crate::ast::basic_parser::stone_parser;
-    use crate::ast::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree, Precedence};
-    use crate::ast::factory::{BinaryExprFactory, IdentifierLiteralFactory};
-    use crate::ast::parser::Parser;
+    use crate::parser::basic_parser::stone_parser;
+    use crate::parser::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree, Precedence};
+    use crate::parser::factory::{BinaryExprFactory, IdentifierLiteralFactory};
+    use crate::parser::parser::Parser;
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use crate::token::token_identifier::TokenIdentifier;

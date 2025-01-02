@@ -2,7 +2,7 @@ use std::any::TypeId;
 use std::fmt::Debug;
 use std::io;
 use std::io::Write;
-use crate::ast::element::{*};
+use crate::parser::element::{*};
 
 pub fn print_and_flush(msg:&str, debug:&dyn Debug) {
     let stdout = io::stdout();

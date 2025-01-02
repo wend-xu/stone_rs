@@ -3,8 +3,8 @@ use std::ops::Add;
 use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral, StringLiteral};
 use crate::ast::ast_list::BinaryExpr;
 use crate::ast::ast_tree::AstTree;
-use crate::ast::element::Leaf;
-use crate::ast::environment::{Env, EnvWrapper};
+use crate::parser::element::Leaf;
+use crate::eval::environment::{Env, EnvWrapper};
 use crate::number_compute;
 use crate::token::TokenValue;
 

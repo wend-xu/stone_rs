@@ -4,11 +4,11 @@ mod eval_tests {
     use TokenValue::IDENTIFIER;
     use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral};
     use crate::ast::ast_list::NullStmt;
-    use crate::ast::eval::{EvalRes, Evaluate};
+    use crate::eval::eval::{EvalRes, Evaluate};
     use crate::token::token_identifier::TokenIdentifier;
     use crate::ast::ast_tree::AstTree;
-    use crate::ast::basic_parser::stone_parser;
-    use crate::ast::environment::{Env, EnvWrapper, MapEnv};
+    use crate::parser::basic_parser::stone_parser;
+    use crate::eval::environment::{Env, EnvWrapper, MapEnv};
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use crate::token::TokenValue;

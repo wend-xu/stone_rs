@@ -1,4 +1,4 @@
-use crate::ast::eval::EvalRes;
+use crate::eval::eval::EvalRes;
 use crate::token::TokenValue;
 
 #[macro_export]

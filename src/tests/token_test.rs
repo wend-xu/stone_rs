@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod token_tests {
     use regex::Regex;
-    use crate::ast::element::{Element, Leaf, Skip};
+    use crate::parser::element::{Element, Leaf, Skip};
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use crate::token::TokenValue;
 
