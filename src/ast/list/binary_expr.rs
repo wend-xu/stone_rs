@@ -2,7 +2,7 @@ use std::any::TypeId;
 use std::slice::Iter;
 use crate::ast::ast_list::AstList;
 use crate::ast::ast_tree::AstTree;
-use crate::{ast_impl_list_factory, ast_list_new_for, number_compute};
+use crate::{ast_list_factory_default_impl, ast_list_default_new, number_compute};
 use crate::eval::environment::{Env, EnvWrapper};
 use crate::eval::eval::{EvalRes, Evaluate};
 
@@ -11,7 +11,7 @@ pub struct BinaryExpr {
 }
 
 impl BinaryExpr {
-    ast_list_new_for! {BinaryExpr}
+    ast_list_default_new! {BinaryExpr}
 
     fn get_binary_part(&self, env: &mut EnvWrapper, index: usize, err_part: &str) -> Result<EvalRes, String> {
         let tree_node_op = self.child(index);
@@ -104,7 +104,7 @@ impl AstTree for BinaryExpr {
     }
 }
 
-ast_impl_list_factory! {BinaryExprFactory,BinaryExpr}
+ast_list_factory_default_impl! {BinaryExprFactory,BinaryExpr}
 
 impl Evaluate for BinaryExpr {
     fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
@@ -113,7 +113,6 @@ impl Evaluate for BinaryExpr {
         let left = self.left(env)?;
 
         if &operator == "=" {
-            // let right_val =  Self::compute_substitution(&right, env)?.clone();
             self.compute_assign(left, env, right)
         } else {
             let left_val = Self::compute_substitution(&left, env)?;

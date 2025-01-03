@@ -2,7 +2,7 @@ use crate::ast::ast_list::AstList;
 use crate::ast::ast_tree::AstTree;
 use crate::parser::factory::{AstFactory, AstLeafFactory};
 use crate::parser::parser::Parser;
-use crate::ast_impl_element_terminal;
+use crate::ast_element_terminal_default_impl;
 use crate::lexer::lexer::Lexer;
 use crate::token::{Token, TokenValue};
 use std::any::TypeId;
@@ -130,8 +130,8 @@ impl Element for Repeat {
 
 // 终结符的实现都是一样的，使用宏定义
 // ast_impl_element_terminal! {IdToken,IdentifierLiteral,IdentifierLiteralFactory}
-ast_impl_element_terminal! {StrToken,StringLiteral,StringLiteralFactory}
-ast_impl_element_terminal! {NumToken, NumberLiteral,NumberLiteralFactory}
+ast_element_terminal_default_impl! {StrToken,StringLiteral,StringLiteralFactory}
+ast_element_terminal_default_impl! {NumToken, NumberLiteral,NumberLiteralFactory}
 pub struct IdToken {
     reserved: Vec<TokenValue>,
     factory: Box<dyn AstLeafFactory>,

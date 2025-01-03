@@ -1,8 +1,8 @@
 
 #[macro_export]
-macro_rules! ast_leaf_new_for {
+macro_rules! ast_leaf_default_new {
     ($node_name:ident, $token_value_type:ident) => {
-      ast_leaf_new_for!($node_name, $token_value_type, ast_leaf );
+      ast_leaf_default_new!($node_name, $token_value_type, ast_leaf );
     };
 
     ($node_name:ident, $token_value_type:ident, $field_name:ident) => {
@@ -32,9 +32,9 @@ macro_rules! ast_leaf_new_for {
 }
 
 #[macro_export]
-macro_rules! ast_leaf_impl_for {
+macro_rules! ast_leaf_default_impl {
     ($node_name:ident, $token_name:ident) => {
-        ast_leaf_impl_for!($node_name, $token_name, ast_leaf );
+        ast_leaf_default_impl!($node_name, $token_name, ast_leaf );
     };
 
     ($node_name:ident, $token_name:ident, $field_name:ident) => {
@@ -67,9 +67,9 @@ macro_rules! ast_leaf_impl_for {
 }
 
 #[macro_export]
-macro_rules! ast_list_new_for {
+macro_rules! ast_list_default_new {
     ($node_name:ident) => {
-      ast_list_new_for!($node_name, children );
+      ast_list_default_new!($node_name, children );
     };
 
     ($node_name:ident, $field_name:ident) => {
@@ -84,9 +84,9 @@ macro_rules! ast_list_new_for {
 }
 
 #[macro_export]
-macro_rules! ast_list_impl_for {
+macro_rules! ast_list_default_impl {
     ($node_name:ident) => {
-        ast_list_impl_for!($node_name, children );
+        ast_list_default_impl!($node_name, children );
     };
 
     ($node_name:ident, $field_name:ident) => {
@@ -124,10 +124,10 @@ macro_rules! generate {
             }
 
             impl $name {
-                ast_list_new_for!{$name}
+                ast_list_default_new!{$name}
             }
 
-            ast_list_impl_for!{$name}
+            ast_list_default_impl!{$name}
         )+
     };
 }
@@ -136,7 +136,7 @@ macro_rules! generate {
 
 /// 构建终结符 的 Element 通用实现
 #[macro_export]
-macro_rules! ast_impl_element_terminal {
+macro_rules! ast_element_terminal_default_impl {
     ($ele_name:ident,$node_name:ident,$def_factory_name:ident) => {
        pub struct $ele_name{
           factory: Box<dyn crate::parser::factory::AstLeafFactory>,
@@ -174,7 +174,7 @@ macro_rules! ast_impl_element_terminal {
 
 
 #[macro_export]
-macro_rules! ast_impl_leaf_factory {
+macro_rules! ast_leaf_factory_default_impl {
    ($factory_name:ident,$node_name:ident) => {
       pub struct $factory_name {}
 
@@ -194,7 +194,7 @@ macro_rules! ast_impl_leaf_factory {
 
 
 #[macro_export]
-macro_rules! ast_impl_list_factory {
+macro_rules! ast_list_factory_default_impl {
    ($factory_name:ident,$node_name:ident) => {
       pub struct $factory_name {}
 

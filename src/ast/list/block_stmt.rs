@@ -1,14 +1,14 @@
 use crate::ast::ast_list::AstList;
-use crate::{ast_impl_list_factory, ast_list_impl_for, ast_list_new_for};
+use crate::{ast_list_factory_default_impl, ast_list_default_impl, ast_list_default_new};
 
 pub struct BlockStmt {
     children: AstList,
 }
 
 impl BlockStmt {
-    ast_list_new_for! {BlockStmt}
+    ast_list_default_new! {BlockStmt}
 }
 
-ast_list_impl_for! {BlockStmt}
+ast_list_default_impl! {BlockStmt}
 
-ast_impl_list_factory! {BlockStmtFactory,BlockStmt}
+ast_list_factory_default_impl! {BlockStmtFactory,BlockStmt}

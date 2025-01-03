@@ -1,5 +1,5 @@
 use crate::ast::ast_leaf::AstLeaf;
-use crate::{ast_impl_leaf_factory, ast_leaf_impl_for, ast_leaf_new_for};
+use crate::{ast_leaf_factory_default_impl, ast_leaf_default_impl, ast_leaf_default_new};
 use crate::eval::environment::EnvWrapper;
 use crate::eval::eval::{EvalRes, Evaluate};
 use crate::token::TokenValue;
@@ -9,12 +9,12 @@ pub struct IdentifierLiteral {
 }
 
 impl IdentifierLiteral {
-    ast_leaf_new_for! {IdentifierLiteral,IDENTIFIER }
+    ast_leaf_default_new! {IdentifierLiteral,IDENTIFIER }
 }
 
-ast_leaf_impl_for! {IdentifierLiteral,TokenIdentifier}
+ast_leaf_default_impl! {IdentifierLiteral,TokenIdentifier}
 
-ast_impl_leaf_factory! {IdentifierLiteralFactory,IdentifierLiteral}
+ast_leaf_factory_default_impl! {IdentifierLiteralFactory,IdentifierLiteral}
 
 impl Evaluate for IdentifierLiteral {
     fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {

@@ -1,12 +1,12 @@
 use crate::ast::ast_list::AstList;
-use crate::{ast_impl_list_factory, ast_list_impl_for, ast_list_new_for};
+use crate::{ast_list_factory_default_impl, ast_list_default_impl, ast_list_default_new};
 
 pub struct WhileStmt {
     children: AstList,
 }
 impl WhileStmt {
-    ast_list_new_for! { WhileStmt }
+    ast_list_default_new! { WhileStmt }
 }
-ast_list_impl_for! { WhileStmt }
+ast_list_default_impl! { WhileStmt }
 
-ast_impl_list_factory! {WhileStmtFactory,WhileStmt}
+ast_list_factory_default_impl! {WhileStmtFactory,WhileStmt}

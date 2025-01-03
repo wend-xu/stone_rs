@@ -1,5 +1,5 @@
 use crate::ast::ast_tree::AstTree;
-use crate::ast_impl_leaf_factory;
+use crate::ast_leaf_factory_default_impl;
 use crate::token::Token;
 use crate::util::str_util::wrapper_node_name;
 use std::any::TypeId;
@@ -45,4 +45,4 @@ impl AstTree for AstLeaf {
     }
 }
 
-ast_impl_leaf_factory! {DefAstLeafFactory,AstLeaf}
+ast_leaf_factory_default_impl! {DefAstLeafFactory,AstLeaf}
