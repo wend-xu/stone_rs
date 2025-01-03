@@ -1,11 +1,11 @@
-use crate::ast::ast_leaf::*;
+use ast::ast_leaf::*;
 use crate::ast::ast_tree::AstTree;
 use crate::lexer::lexer::Lexer;
 use crate::token::token_number::TokenNumber;
 use crate::token::Token;
 use std::fmt::Debug;
-use crate::ast::binary_expr::BinaryExpr;
-use crate::ast::number_literal::NumberLiteral;
+use ast::list::binary_expr::BinaryExpr;
+use ast::leaf::number_literal::NumberLiteral;
 
 mod lexer;
 mod token;

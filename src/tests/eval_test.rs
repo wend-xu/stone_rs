@@ -10,8 +10,8 @@ mod eval_tests {
     use crate::token::TokenValue;
     use std::any::TypeId;
     use TokenValue::IDENTIFIER;
-    use crate::ast::identifier_literal::IdentifierLiteral;
-    use crate::ast::null_stmt::NullStmt;
+    use crate::ast::leaf::identifier_literal::IdentifierLiteral;
+    use crate::ast::list::null_stmt::NullStmt;
 
     #[test]
     fn eval_test(){

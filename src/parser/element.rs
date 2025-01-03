@@ -10,9 +10,9 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::ast::ast_leaf::AstLeaf;
-use crate::ast::identifier_literal::{IdentifierLiteral, IdentifierLiteralFactory};
-use crate::ast::number_literal::{NumberLiteral, NumberLiteralFactory};
-use crate::ast::string_literal::{StringLiteral, StringLiteralFactory};
+use crate::ast::leaf::identifier_literal::{IdentifierLiteral, IdentifierLiteralFactory};
+use crate::ast::leaf::number_literal::{NumberLiteral, NumberLiteralFactory};
+use crate::ast::leaf::string_literal::{StringLiteral, StringLiteralFactory};
 
 pub trait Element {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String>;

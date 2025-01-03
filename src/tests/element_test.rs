@@ -2,8 +2,8 @@
 mod element_tests {
     use crate::ast::ast_list::AstList;
     use crate::ast::ast_tree::AstTree;
-    use crate::ast::identifier_literal::{IdentifierLiteral, IdentifierLiteralFactory};
-    use crate::ast::string_literal::StringLiteral;
+    use crate::ast::leaf::identifier_literal::{IdentifierLiteral, IdentifierLiteralFactory};
+    use crate::ast::leaf::string_literal::StringLiteral;
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use crate::parser::basic_parser::stone_parser;
@@ -15,7 +15,7 @@ mod element_tests {
     use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
     use std::any::{Any, TypeId};
     use std::rc::Rc;
-    use crate::ast::binary_expr::BinaryExprFactory;
+    use crate::ast::list::binary_expr::BinaryExprFactory;
 
     #[test]
     fn match_test() {
