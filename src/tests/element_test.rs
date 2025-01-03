@@ -1,24 +1,25 @@
 #[cfg(test)]
 mod element_tests {
-    use crate::ast::ast_leaf::{IdentifierLiteral, StringLiteral};
     use crate::ast::ast_list::AstList;
     use crate::ast::ast_tree::AstTree;
-    use crate::parser::basic_parser::stone_parser;
-    use crate::parser::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree, Precedence};
-    use crate::parser::factory::{BinaryExprFactory, IdentifierLiteralFactory};
-    use crate::parser::parser::Parser;
+    use crate::ast::identifier_literal::{IdentifierLiteral, IdentifierLiteralFactory};
+    use crate::ast::string_literal::StringLiteral;
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
+    use crate::parser::basic_parser::stone_parser;
+    use crate::parser::element::{Element, IdToken, Leaf, NumToken, Operators, OrTree, Precedence};
+    use crate::parser::parser::Parser;
     use crate::token::token_identifier::TokenIdentifier;
     use crate::token::token_string::TokenString;
     use crate::token::TokenValue;
     use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
     use std::any::{Any, TypeId};
     use std::rc::Rc;
+    use crate::ast::binary_expr::BinaryExprFactory;
 
     #[test]
     fn match_test() {
-        let ast_list = AstList::new(vec![]);
+        let ast_list = AstList::new_def(vec![]);
 
         let vec_dyn_token: Vec<Box<dyn AstTree>> = vec![Box::new(ast_list)];
 
@@ -35,7 +36,7 @@ mod element_tests {
         let code = "code".to_string();
         let mut lexer = LineReaderLexer::new(code);
         let factory = IdentifierLiteralFactory::new();
-        let x = IdToken::new(Some(factory),vec![]);
+        let x = IdToken::new(Some(factory), vec![]);
         let mut res: Vec<Box<dyn AstTree>> = vec![];
         x.parse(&mut lexer, &mut res);
         println!("{}", res.get(0).unwrap().location());
@@ -195,8 +196,8 @@ while i < 10 {
         operators.add(Precedence::left("*", 4));
         operators.add(Precedence::left("/", 4));
         operators.add(Precedence::left("%", 4));
-        println!("{}",operators.get("==").is_some());
-        println!("{}",operators.get("==").is_some());
+        println!("{}", operators.get("==").is_some());
+        println!("{}", operators.get("==").is_some());
     }
 
     #[test]
@@ -219,7 +220,7 @@ even + odd
         println!("分词完成");
         let parser = stone_parser();
         println!("语法解析器完成");
-        _p_res(&mut lexer,&parser) ;
+        _p_res(&mut lexer, &parser);
     }
 
     #[test]
@@ -229,20 +230,20 @@ i = 3*2(1+1)
         ";
 
         let mut lexer = LineReaderLexer::new(code.to_string());
-        println!("分词完成 \n {}",lexer);
+        println!("分词完成 \n {}", lexer);
         let parser = stone_parser();
         println!("语法解析器完成");
-        _p_res(&mut lexer,&parser) ;
+        _p_res(&mut lexer, &parser);
     }
 
     #[test]
     fn if_else_test_2() {
         let parser = Parser::rule_def().sep(vec!["else"]);
         let mut lexer = LineReaderLexer::new("else else if else".to_string());
-        _p_res(&mut lexer,&parser)
+        _p_res(&mut lexer, &parser)
     }
 
-    fn _p_res(lexer:&mut dyn Lexer, parser:&Parser) {
+    fn _p_res(lexer: &mut dyn Lexer, parser: &Parser) {
         let mut err = None;
         let mut ast_tree_vec: Vec<Box<dyn AstTree>> = vec![];
         while let Some(token) = lexer.peek(0) {
@@ -250,7 +251,7 @@ i = 3*2(1+1)
                 break;
             }
             if !parser.is_match(lexer) {
-                err = Some(Err(format!("无法处理的token： {:?}",lexer.read().unwrap().value())));
+                err = Some(Err(format!("无法处理的token： {:?}", lexer.read().unwrap().value())));
                 break;
             }
             let res_pro = parser.parse(lexer);
@@ -263,12 +264,12 @@ i = 3*2(1+1)
         }
         if err.is_some() {
             let err = err.unwrap();
-            if let Err(err_msg) = err{
+            if let Err(err_msg) = err {
                 println!("{}", err_msg);
             }
             return;
         }
-        let res_ast_tree = AstList::new(ast_tree_vec);
+        let res_ast_tree = AstList::new_def(ast_tree_vec);
         println!("{}", res_ast_tree.location());
     }
 }

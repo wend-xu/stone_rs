@@ -1,7 +1,5 @@
-use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral, StringLiteral};
-use crate::ast::ast_list::{AstList, BinaryExpr, BlockStmt, IfStmt, NegativeExpr, NullStmt, PrimaryExpr, WhileStmt};
+use crate::ast::ast_list::AstList;
 use crate::ast::ast_tree::AstTree;
-use crate::{ast_impl_leaf_factory, ast_impl_list_factory};
 use crate::token::Token;
 
 pub trait AstFactory {
@@ -23,36 +21,9 @@ impl AstFactory for AstListFactory {
         let mut res = res;
         if res.len() == 1 {
             res.remove(0)
-        } else { Box::new(AstList::new(res)) }
+        } else { Box::new(AstList::new_def(res)) }
     }
 }
 
-// 宏 构建 ast_list的工厂类
-ast_impl_list_factory! {BinaryExprFactory,BinaryExpr}
-ast_impl_list_factory! {BlockStmtFactory,BlockStmt}
-ast_impl_list_factory! {IfStmtFactory,IfStmt}
-ast_impl_list_factory! {NegativeExprFactory,NegativeExpr}
-ast_impl_list_factory! {NullStmtFactory,NullStmt}
-ast_impl_list_factory! {WhileStmtFactory,WhileStmt}
-pub struct PrimaryExprFactory {}
-impl PrimaryExprFactory {
-    pub fn new() -> Box<Self> {
-        Box::new(PrimaryExprFactory {})
-    }
-}
-impl AstFactory for PrimaryExprFactory {
-    fn make(&self, res: Vec<Box<dyn AstTree>>) -> Box<dyn AstTree> {
-        let mut res = res;
-        if res.len() == 1 {
-            res.remove(0)
-        } else {
-            Box::new(PrimaryExpr::new(res))
-        }
-    }
-}
 
-// 宏 构建 ast_leaf的工厂类
-ast_impl_leaf_factory! {DefAstLeafFactory,AstLeaf}
-ast_impl_leaf_factory! {NumberLiteralFactory,NumberLiteral}
-ast_impl_leaf_factory! {IdentifierLiteralFactory,IdentifierLiteral}
-ast_impl_leaf_factory! {StringLiteralFactory,StringLiteral}
+

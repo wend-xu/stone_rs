@@ -1,8 +1,7 @@
 use crate::ast::ast_tree::AstTree;
-use crate::eval::eval::Evaluate;
-use crate::token::{Token, TokenValue};
+use crate::ast_impl_leaf_factory;
+use crate::token::Token;
 use crate::util::str_util::wrapper_node_name;
-use crate::{ast_leaf_impl_for, ast_leaf_new_for};
 use std::any::TypeId;
 use std::slice::Iter;
 
@@ -18,6 +17,8 @@ impl AstLeaf {
     pub fn new_un_ref(token: Box<dyn Token>) -> Self {
         AstLeaf { token }
     }
+
+    pub fn token(&self) -> &Box<dyn Token> { &self.token }
 }
 
 impl AstTree for AstLeaf {
@@ -40,39 +41,8 @@ impl AstTree for AstLeaf {
     }
 
     fn actual_type_id(&self) -> TypeId {
-        // panic!("un support in node type [AstLeaf]")
         TypeId::of::<AstLeaf>()
     }
 }
 
-pub struct NumberLiteral {
-    ast_leaf:AstLeaf,
-}
-
-impl NumberLiteral {
-    ast_leaf_new_for! {NumberLiteral,NUMBER }
-}
-
-ast_leaf_impl_for! {NumberLiteral,TokenNumber}
-
-pub struct IdentifierLiteral {
-    ast_leaf:AstLeaf,
-}
-
-impl IdentifierLiteral {
-    ast_leaf_new_for! {IdentifierLiteral,IDENTIFIER }
-}
-
-ast_leaf_impl_for! {IdentifierLiteral,TokenIdentifier}
-
-pub struct StringLiteral {
-    ast_leaf: AstLeaf,
-}
-
-impl StringLiteral {
-    ast_leaf_new_for! {StringLiteral,StringVal }
-}
-
-ast_leaf_impl_for! {StringLiteral,TokenText}
-
-
+ast_impl_leaf_factory! {DefAstLeafFactory,AstLeaf}

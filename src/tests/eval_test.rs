@@ -1,17 +1,17 @@
 #[cfg(test)]
 mod eval_tests {
-    use std::any::TypeId;
-    use TokenValue::IDENTIFIER;
-    use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral};
-    use crate::ast::ast_list::NullStmt;
-    use crate::eval::eval::{EvalRes, Evaluate};
-    use crate::token::token_identifier::TokenIdentifier;
     use crate::ast::ast_tree::AstTree;
-    use crate::parser::basic_parser::stone_parser;
-    use crate::eval::environment::{Env, EnvWrapper, MapEnv};
+    use crate::eval::environment::{Env, EnvWrapper};
+    use crate::eval::eval::Evaluate;
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
+    use crate::parser::basic_parser::stone_parser;
+    use crate::token::token_identifier::TokenIdentifier;
     use crate::token::TokenValue;
+    use std::any::TypeId;
+    use TokenValue::IDENTIFIER;
+    use crate::ast::identifier_literal::IdentifierLiteral;
+    use crate::ast::null_stmt::NullStmt;
 
     #[test]
     fn eval_test(){
@@ -26,7 +26,8 @@ mod eval_tests {
         println!("{}", eq);
         let mut wrapper = EnvWrapper::new();
         let literal = IdentifierLiteral::new(TokenIdentifier::new(0, "i"));
-        let res = literal.eval().do_eval(&mut wrapper).unwrap();
+
+        let res = literal.do_eval(&mut wrapper).unwrap();
         println!("{:?}",res);
     }
 

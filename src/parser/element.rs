@@ -1,7 +1,6 @@
-use crate::ast::ast_leaf::{AstLeaf, IdentifierLiteral, NumberLiteral, StringLiteral};
 use crate::ast::ast_list::AstList;
 use crate::ast::ast_tree::AstTree;
-use crate::parser::factory::{AstFactory, AstLeafFactory, IdentifierLiteralFactory, NumberLiteralFactory, StringLiteralFactory};
+use crate::parser::factory::{AstFactory, AstLeafFactory};
 use crate::parser::parser::Parser;
 use crate::ast_impl_element_terminal;
 use crate::lexer::lexer::Lexer;
@@ -10,6 +9,10 @@ use std::any::TypeId;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::ast::ast_leaf::AstLeaf;
+use crate::ast::identifier_literal::{IdentifierLiteral, IdentifierLiteralFactory};
+use crate::ast::number_literal::{NumberLiteral, NumberLiteralFactory};
+use crate::ast::string_literal::{StringLiteral, StringLiteralFactory};
 
 pub trait Element {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String>;

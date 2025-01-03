@@ -1,5 +1,4 @@
 use crate::eval::eval::EvalRes;
-use std::cell::RefCell;
 use std::collections::HashMap;
 
 pub trait Env {

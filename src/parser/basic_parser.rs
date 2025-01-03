@@ -1,5 +1,14 @@
+use crate::ast::binary_expr::BinaryExprFactory;
+use crate::ast::block_stmt::BlockStmtFactory;
+use crate::ast::identifier_literal::IdentifierLiteralFactory;
+use crate::ast::if_stmt::IfStmtFactory;
+use crate::ast::negative_expr::NegativeExprFactory;
+use crate::ast::null_stmt::NullStmtFactory;
+use crate::ast::number_literal::NumberLiteralFactory;
+use crate::ast::primary_expr::PrimaryExprFactory;
+use crate::ast::string_literal::StringLiteralFactory;
+use crate::ast::while_stmt::WhileStmtFactory;
 use crate::parser::element::{Operators, Precedence};
-use crate::parser::factory::{BinaryExprFactory, BlockStmtFactory, IdentifierLiteralFactory, IfStmtFactory, NegativeExprFactory, NullStmtFactory, NumberLiteralFactory, PrimaryExprFactory, StringLiteralFactory, WhileStmtFactory};
 use crate::parser::parser::Parser;
 use crate::token::TokenValue;
 

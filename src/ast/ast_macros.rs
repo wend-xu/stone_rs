@@ -1,5 +1,3 @@
-use crate::eval::eval::EvalRes;
-use crate::token::TokenValue;
 
 #[macro_export]
 macro_rules! ast_leaf_new_for {
@@ -8,10 +6,10 @@ macro_rules! ast_leaf_new_for {
     };
 
     ($node_name:ident, $token_value_type:ident, $field_name:ident) => {
-        pub fn new(token: Box<dyn Token>) -> Box<$node_name> {
+        pub fn new(token: Box<dyn crate::token::Token>) -> Box<$node_name> {
              match token.value() {
-                 TokenValue::$token_value_type(_) => {
-                    Box::new($node_name { ast_leaf: AstLeaf::new_un_ref(token) })
+                 crate::token::TokenValue::$token_value_type(_) => {
+                    Box::new($node_name { ast_leaf: crate::ast::ast_leaf::AstLeaf::new_un_ref(token) })
                 }
                 _ => {
                     panic!("[{}] token value should should a [{}],actual is [{:?}]",
@@ -20,15 +18,15 @@ macro_rules! ast_leaf_new_for {
             }
         }
 
-        pub fn is_match(token: &Box<dyn Token>) -> bool {
+        pub fn is_match(token: &Box<dyn crate::token::Token>) -> bool {
             match token.value() {
-                TokenValue::$token_value_type(_) => { true }
+                crate::token::TokenValue::$token_value_type(_) => { true }
                 _ => { false }
             }
         }
 
-        pub fn leaf_val(&self) -> &TokenValue{
-            self.ast_leaf.token.value()
+        pub fn leaf_val(&self) -> &crate::token::TokenValue{
+            self.ast_leaf.token().value()
         }
     }
 }
@@ -40,8 +38,8 @@ macro_rules! ast_leaf_impl_for {
     };
 
     ($node_name:ident, $token_name:ident, $field_name:ident) => {
-       impl AstTree for $node_name {
-            fn child(&self, index: usize) -> Option<&Box<dyn AstTree>> {
+       impl crate::ast::ast_tree::AstTree for $node_name {
+            fn child(&self, index: usize) -> Option<&Box<dyn crate::ast::ast_tree::AstTree>> {
                 self.$field_name.child(index)
             }
 
@@ -49,7 +47,7 @@ macro_rules! ast_leaf_impl_for {
                 self.$field_name.num_children()
             }
 
-            fn children(&self) -> Iter<Box<dyn AstTree>> {
+            fn children(&self) -> std::slice::Iter<Box<dyn crate::ast::ast_tree::AstTree>> {
                 self.$field_name.children()
             }
 
@@ -57,11 +55,11 @@ macro_rules! ast_leaf_impl_for {
                 self.$field_name.location()
             }
 
-            fn actual_type_id(&self) -> TypeId {
-                TypeId::of::<$node_name>()
+            fn actual_type_id(&self) -> std::any::TypeId {
+                std::any::TypeId::of::<$node_name>()
             }
 
-            fn eval(&self) -> Box<&dyn Evaluate> {
+            fn eval(&self) -> Box<&dyn crate::eval::eval::Evaluate> {
                 Box::new(self)
             }
        }
@@ -75,12 +73,11 @@ macro_rules! ast_list_new_for {
     };
 
     ($node_name:ident, $field_name:ident) => {
-        pub fn new($field_name: Vec<Box<dyn AstTree>>) -> $node_name {
+        pub fn new($field_name: Vec<Box<dyn  crate::ast::ast_tree::AstTree>>) -> $node_name {
             $node_name{
-                 $field_name:AstList {
-                     node_name:stringify!($node_name),
-                     children:$field_name
-                 }
+                 $field_name:crate::ast::ast_list::AstList::new(
+                     stringify!($node_name),$field_name
+                 )
             }
         }
     }
@@ -93,8 +90,8 @@ macro_rules! ast_list_impl_for {
     };
 
     ($node_name:ident, $field_name:ident) => {
-       impl AstTree for $node_name {
-            fn child(&self, index: usize) -> Option<&Box<dyn AstTree>> {
+       impl  crate::ast::ast_tree::AstTree for $node_name {
+            fn child(&self, index: usize) -> Option<&Box<dyn  crate::ast::ast_tree::AstTree>> {
                 self.$field_name.child(index)
             }
 
@@ -102,7 +99,7 @@ macro_rules! ast_list_impl_for {
                 self.$field_name.num_children()
             }
 
-            fn children(&self) -> Iter<Box<dyn AstTree>> {
+            fn children(&self) -> std::slice::Iter<Box<dyn  crate::ast::ast_tree::AstTree>> {
                 self.$field_name.children()
             }
 
@@ -110,8 +107,8 @@ macro_rules! ast_list_impl_for {
                 self.$field_name.location()
             }
 
-            fn actual_type_id(&self) -> TypeId {
-                TypeId::of::<$node_name>()
+            fn actual_type_id(&self) -> std::any::TypeId {
+                std::any::TypeId::of::<$node_name>()
             }
        }
     };
@@ -123,7 +120,7 @@ macro_rules! generate {
     ($($name:ident),+) => {
         $(
            pub struct $name {
-                children:AstList
+                children:crate::ast::ast_list::AstList
             }
 
             impl $name {
@@ -142,11 +139,11 @@ macro_rules! generate {
 macro_rules! ast_impl_element_terminal {
     ($ele_name:ident,$node_name:ident,$def_factory_name:ident) => {
        pub struct $ele_name{
-          factory: Box<dyn AstLeafFactory>,
+          factory: Box<dyn crate::parser::factory::AstLeafFactory>,
        }
 
        impl $ele_name {
-           pub fn new(factory:Option<Box<dyn AstLeafFactory>>) -> Box<Self>{
+           pub fn new(factory:Option<Box<dyn crate::parser::factory::AstLeafFactory>>) -> Box<Self>{
                 let factory = match factory{
                     None => { $def_factory_name::new() }
                     Some(factory) => { factory }
@@ -159,8 +156,8 @@ macro_rules! ast_impl_element_terminal {
             }
        }
 
-       impl Element for $ele_name {
-            fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String> {
+       impl crate::parser::element::Element for $ele_name {
+            fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn  crate::ast::ast_tree::AstTree>>) -> Result<(), String> {
                 let read = lexer.read().unwrap();
                 res.push($node_name::new(read));
                 Ok(())
@@ -187,8 +184,8 @@ macro_rules! ast_impl_leaf_factory {
         }
       }
 
-      impl AstLeafFactory for $factory_name {
-          fn make(&self, res: Box<dyn Token>) -> Box<dyn AstTree> {
+      impl crate::parser::factory::AstLeafFactory for $factory_name {
+          fn make(&self, res: Box<dyn crate::token::Token>) -> Box<dyn  crate::ast::ast_tree::AstTree> {
               $node_name::new(res)
           }
       }
@@ -207,8 +204,8 @@ macro_rules! ast_impl_list_factory {
         }
       }
 
-      impl AstFactory for $factory_name {
-          fn make(&self, res: Vec<Box<dyn AstTree>>) -> Box<dyn AstTree> {
+      impl crate::parser::factory::AstFactory for $factory_name {
+          fn make(&self, res: Vec<Box<dyn  crate::ast::ast_tree::AstTree>>) -> Box<dyn  crate::ast::ast_tree::AstTree> {
               Box::new($node_name::new(res))
           }
       }
@@ -222,12 +219,12 @@ macro_rules! number_compute {
         match $op {
         $(
             stringify!($op_calc) => {
-                EvalRes::NUMBER($left $op_calc $right)
+                crate::eval::eval::EvalRes::NUMBER($left $op_calc $right)
             }
         )+
         $(
             stringify!($op_eq) => {
-                EvalRes::BOOLEAN($left $op_eq $right)
+                crate::eval::eval::EvalRes::BOOLEAN($left $op_eq $right)
             }
         )+
             &_ => {
