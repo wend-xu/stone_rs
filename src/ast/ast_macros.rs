@@ -235,12 +235,22 @@ macro_rules! number_compute {
 }
 
 #[macro_export]
-macro_rules! ternary {
-    ($condition:expr , $expr_true:expr , $expr_false:expr) => {
-        if $condition {
-            $expr_true
-        }else{
-            $expr_false
+macro_rules! ast_leaf_default_eval_impl {
+    ($node_name:ident,$token_val:ident ,$eval_res:ident) => {
+        impl crate::eval::eval::Evaluate for $node_name{
+            fn do_eval(&self, env: &mut crate::eval::environment::EnvWrapper) -> Result<crate::eval::eval::EvalRes, String> {
+                let token = self.leaf_val();
+                let eval_res = match token {
+                    crate::token::TokenValue::$token_val(id) => {
+                        EvalRes::$eval_res(id.clone())
+                    }
+                    _ => {
+                        panic!("[{}] hold token must a TokenValue::{} , not match \
+                        \n error may occur in build AstTree",stringify!($node_name),stringify!($token_val))
+                    }
+                };
+                Ok(eval_res)
+            }
         }
     };
 }

@@ -1,8 +1,6 @@
 use crate::ast::ast_leaf::AstLeaf;
-use crate::{ast_leaf_factory_default_impl, ast_leaf_default_impl, ast_leaf_default_new};
-use crate::eval::environment::EnvWrapper;
-use crate::eval::eval::{EvalRes, Evaluate};
-use crate::token::TokenValue;
+use crate::eval::eval::EvalRes;
+use crate::{ast_leaf_default_eval_impl, ast_leaf_default_impl, ast_leaf_default_new, ast_leaf_factory_default_impl};
 
 pub struct NumberLiteral {
     ast_leaf: AstLeaf,
@@ -16,17 +14,4 @@ ast_leaf_default_impl! {NumberLiteral,TokenNumber}
 
 ast_leaf_factory_default_impl! {NumberLiteralFactory,NumberLiteral}
 
-impl Evaluate for NumberLiteral {
-    fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
-        let token = self.leaf_val();
-        let eval_res = match token {
-            TokenValue::NUMBER(id) => {
-                EvalRes::NUMBER(id.clone())
-            }
-            _ => {
-                panic!("[NumberLiteral] hold token must a TokenValue::NUMBER , not match \n error may occur in build AstTree")
-            }
-        };
-        Ok(eval_res)
-    }
-}
+ast_leaf_default_eval_impl! { NumberLiteral, NUMBER, NUMBER }
