@@ -126,7 +126,6 @@ impl Parser {
         todo!("需要的时候再实现")
     }
 
-    // todo 判断self 是 rc 还是 原始类型，决定 Rc::new 还是 Clone
     pub fn rc(mut self) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(self))
     }

@@ -1,6 +1,8 @@
 use crate::ast::ast_list::AstList;
 use crate::{ast_list_default_impl, ast_list_default_new};
 use crate::ast::ast_tree::AstTree;
+use crate::eval::environment::EnvWrapper;
+use crate::eval::eval::{EvalRes, Evaluate};
 use crate::parser::factory::AstFactory;
 
 pub struct PrimaryExpr {
@@ -29,3 +31,8 @@ impl AstFactory for PrimaryExprFactory {
     }
 }
 
+impl Evaluate for PrimaryExpr {
+    fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
+        panic!("do_eval called on PrimaryExpr")
+    }
+}

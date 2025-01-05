@@ -1,9 +1,9 @@
 use crate::ast::ast_tree::AstTree;
+use crate::eval::eval::Evaluate;
 use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
 use std::any::TypeId;
 use std::fmt::Debug;
 use std::slice::Iter;
-
 
 /// 宏展开生成代码：
 /// generate![BinaryExpr,BlockStmt,IfStmt,NegativeExpr,NullStmt,PrimaryExpr,WhileStmt];
@@ -15,15 +15,28 @@ pub struct AstList {
 impl AstList {
     pub fn new_def(children: Vec<Box<dyn AstTree>>) -> AstList {
         AstList {
-            node_name:"ast_list",
-            children
+            node_name: "ast_list",
+            children,
         }
     }
 
-    pub fn new(node_name:&'static str ,children: Vec<Box<dyn AstTree>>) -> AstList {
+    pub fn new(node_name: &'static str, children: Vec<Box<dyn AstTree>>) -> AstList {
         AstList {
             node_name,
-            children
+            children,
+        }
+    }
+
+    pub fn child_as_eval(&self, index: usize, err_msg: String) -> Result<Box<&dyn Evaluate>, String> {
+        match self.children.get(index) {
+            None => {
+                Err(format!("Child is None, could not cast to Evaluate, index: {} ,\
+            caller err msg :{}", index, err_msg))
+            }
+            Some(tree_node) => {
+                tree_node.actual_type_id();
+                Ok(tree_node.eval())
+            }
         }
     }
 }
@@ -57,6 +70,11 @@ impl AstTree for AstList {
 
     fn actual_type_id(&self) -> TypeId {
         TypeId::of::<AstList>()
+    }
+
+
+    fn eval(&self) -> Box<&dyn Evaluate> {
+        panic!("[AstList][eval] unsupported eval type");
     }
 }
 

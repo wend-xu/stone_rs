@@ -110,6 +110,10 @@ macro_rules! ast_list_default_impl {
             fn actual_type_id(&self) -> std::any::TypeId {
                 std::any::TypeId::of::<$node_name>()
             }
+
+            fn eval(&self) -> Box<&dyn crate::eval::eval::Evaluate> {
+                Box::new(self)
+            }
        }
     };
 }

@@ -1,10 +1,8 @@
-use std::any::TypeId;
-use std::slice::Iter;
 use crate::ast::ast_list::AstList;
 use crate::ast::ast_tree::AstTree;
-use crate::{ast_list_factory_default_impl, ast_list_default_new, number_compute};
 use crate::eval::environment::{Env, EnvWrapper};
 use crate::eval::eval::{EvalRes, Evaluate};
+use crate::{ast_list_default_impl, ast_list_default_new, ast_list_factory_default_impl, number_compute};
 
 pub struct BinaryExpr {
     children: AstList,
@@ -14,14 +12,9 @@ impl BinaryExpr {
     ast_list_default_new! {BinaryExpr}
 
     fn get_binary_part(&self, env: &mut EnvWrapper, index: usize, err_part: &str) -> Result<EvalRes, String> {
-        let tree_node_op = self.child(index);
-        match tree_node_op {
-            None => { Err(format!("[BinaryExpr] {} is None", err_part)) }
-            Some(tree_node) => {
-                let eval_res = tree_node.eval().do_eval(env)?;
-                Ok(eval_res)
-            }
-        }
+        let eval = self.children.
+            child_as_eval(index, format!("[BinaryExpr] {} is None", err_part))?;
+        eval.do_eval(env)
     }
 
     fn left(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
@@ -45,6 +38,8 @@ impl BinaryExpr {
     fn compute_assign(&self, left_val: EvalRes, env: &mut EnvWrapper, right: EvalRes) -> Result<EvalRes, String> {
         let right_val = if right.is_identifier() {
             Self::compute_substitution(&right, env)?.clone()
+        } else if right == EvalRes::VOID {
+            return Err(format!("[BinaryExpr] could not assign [void] for {:?} ",left_val));
         } else { right };
 
         match left_val {
@@ -78,31 +73,7 @@ impl BinaryExpr {
     }
 }
 
-impl AstTree for BinaryExpr {
-    fn child(&self, index: usize) -> Option<&Box<dyn AstTree>> {
-        self.children.child(index)
-    }
-
-    fn num_children(&self) -> usize {
-        self.children.num_children()
-    }
-
-    fn children(&self) -> Iter<Box<dyn AstTree>> {
-        self.children.children()
-    }
-
-    fn location(&self) -> String {
-        self.children.location()
-    }
-
-    fn actual_type_id(&self) -> TypeId {
-        TypeId::of::<BinaryExpr>()
-    }
-
-    fn eval(&self) -> Box<&dyn Evaluate> {
-        Box::new(self)
-    }
-}
+ast_list_default_impl! {BinaryExpr}
 
 ast_list_factory_default_impl! {BinaryExprFactory,BinaryExpr}
 

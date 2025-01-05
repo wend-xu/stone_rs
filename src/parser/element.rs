@@ -73,7 +73,8 @@ impl Element for OrTree {
             parser.borrow().parse(lexer)
         } else {
             let next_token = lexer.peek(0).unwrap();
-            Err(format!("OrTree::choose failed, no parser found, token : [{} : {:?} ]", next_token.line_number(), next_token.value()))
+            let i = self.parser_vec.len();
+            Err(format!("OrTree::choose failed, no parser found in {i} sub tree, token : [line[{}] :value[{:?}]]", next_token.line_number(), next_token.value()))
         };
 
         let tree_node = result?;
@@ -112,7 +113,7 @@ impl Element for Repeat {
             ///
             /// 故进入while 循环后的判定条件：  不为AstList(不可执行无意义) 子节点是数为0(实际未匹配可执行内容)
             let tree_node = parser_borrow.parse(lexer)?;
-            if tree_node.num_children() > 0 || tree_node.actual_type_id() == TypeId::of::<AstList>() {
+            if tree_node.num_children() > 0 || tree_node.actual_type_id() != TypeId::of::<AstList>() {
                 res.push(tree_node);
             }
             if self.only_once {
@@ -233,8 +234,8 @@ impl Element for Skip {
 ///     如 + 运算的优先级低于 * 运算，故 value 应符合 * > +
 /// 而 left_assoc 代表了 左结合 还是 右结合，代表了相同优先级时应该运算顺序是\[从左往右] 还是 \[从右往左]
 ///     如
-///     = 赋值运算，右结合， 如一行多次赋值 a = b = c = 3,所有 = 号 具备相同优先级，最先执行的是最右边的赋值
-///     + 加法运算，左结合
+///         = 赋值运算，右结合， 如一行多次赋值 a = b = c = 3,所有 = 号 具备相同优先级，最先执行的是最右边的赋值
+///         + 加法运算，左结合
 #[derive(Debug)]
 pub struct Precedence {
     name: &'static str,

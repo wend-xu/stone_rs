@@ -21,7 +21,9 @@ impl AstFactory for AstListFactory {
         let mut res = res;
         if res.len() == 1 {
             res.remove(0)
-        } else { Box::new(AstList::new_def(res)) }
+        } else {
+            Box::new(AstList::new_def(res))
+        }
     }
 }
 

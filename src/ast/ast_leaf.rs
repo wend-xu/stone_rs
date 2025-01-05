@@ -4,6 +4,7 @@ use crate::token::Token;
 use crate::util::str_util::wrapper_node_name;
 use std::any::TypeId;
 use std::slice::Iter;
+use crate::eval::eval::Evaluate;
 
 pub struct AstLeaf {
     token: Box<dyn Token>,
@@ -43,6 +44,11 @@ impl AstTree for AstLeaf {
     fn actual_type_id(&self) -> TypeId {
         TypeId::of::<AstLeaf>()
     }
+
+    fn eval(&self) -> Box<&dyn Evaluate> {
+       panic!("[AstLeaf][eval] unsupported eval type");
+    }
 }
 
 ast_leaf_factory_default_impl! {DefAstLeafFactory,AstLeaf}
+

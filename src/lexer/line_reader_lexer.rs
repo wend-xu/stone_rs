@@ -99,7 +99,6 @@ impl LineReaderLexer {
             let option = matcher.captures_at(line_code, pos);
             has_more = match option {
                 None => {
-                    // println!("line number [{line_number}] find None ,end line find ...");
                     false
                 }
                 Some(cap) => {

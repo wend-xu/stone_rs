@@ -13,9 +13,7 @@ pub trait AstTree {
 
     fn actual_type_id(&self) -> TypeId;
 
-    fn eval(&self) -> Box<&dyn Evaluate> {
-        panic!("not a eval")
-    }
+    fn eval(&self) -> Box<&dyn Evaluate>;
 }
 
 
