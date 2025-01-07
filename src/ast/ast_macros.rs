@@ -62,6 +62,10 @@ macro_rules! ast_leaf_default_impl {
             fn eval(&self) -> Box<&dyn crate::eval::eval::Evaluate> {
                 Box::new(self)
             }
+
+            fn to_any(& self) -> &dyn std::any::Any{
+                self
+            }
        }
     };
 }
@@ -182,8 +186,8 @@ macro_rules! ast_element_terminal_default_impl {
 #[macro_export]
 macro_rules! ast_element_actual_type_id{
     () => {
-        fn el_actual_type_id(&self) -> TypeId {
-            TypeId::of::<Self>()
+        fn el_actual_type_id(&self) ->  std::any::TypeId  {
+             std::any::TypeId::of::<Self>()
         }
     }
 }

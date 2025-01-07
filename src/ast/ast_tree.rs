@@ -1,4 +1,4 @@
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::slice::Iter;
 use crate::eval::eval::Evaluate;
 
@@ -14,6 +14,10 @@ pub trait AstTree {
     fn actual_type_id(&self) -> TypeId;
 
     fn eval(&self) -> Box<&dyn Evaluate>;
+
+    fn to_any (&self) -> &dyn Any{
+        panic!("Element un support to_any")
+    }
 }
 
 
