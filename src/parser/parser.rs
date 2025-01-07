@@ -1,3 +1,4 @@
+use std::any::TypeId;
 use crate::ast::ast_tree::AstTree;
 use crate::parser::element::{Element, Expr, IdToken, Leaf, NumToken, Operators, OrTree, Repeat, Skip, StrToken, Tree};
 use crate::parser::factory::{AstFactory, AstLeafFactory, AstListFactory};
@@ -129,10 +130,22 @@ impl Parser {
         self
     }
 
-    pub fn insert_choice(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
-        let ele_0 = self.elements.get(0);
+    pub fn insert_choice(mut self, parser: &Rc<RefCell<Parser>>) -> Self {
+        if let Some(mut ele_0) =  self.elements.get_mut(0) {
+            if ele_0.el_actual_type_id() == TypeId::of::<OrTree>() {
+                let mut or_tree =
+                    ele_0.to_any_mut().downcast_mut::<OrTree>().unwrap();
+                or_tree.insert(parser);
+                return self;
+            }
+        }
+        let otherwise = self.otherwise(parser);
+        self.or(vec![parser,&otherwise])
+    }
 
-        self
+    fn otherwise(&mut self,parser:&Rc<RefCell<Parser>>) -> Rc<RefCell<Parser>> {
+        let factory_clone = parser.borrow().factory.clone();
+        Parser::rule(factory_clone).rc()
     }
 
     pub fn rc(mut self) -> Rc<RefCell<Self>> {

@@ -2,10 +2,10 @@ use crate::ast::ast_list::AstList;
 use crate::ast::ast_tree::AstTree;
 use crate::parser::factory::{AstFactory, AstLeafFactory};
 use crate::parser::parser::Parser;
-use crate::ast_element_terminal_default_impl;
+use crate::{ast_element_actual_type_id, ast_element_terminal_default_impl};
 use crate::lexer::lexer::Lexer;
 use crate::token::{Token, TokenValue};
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -18,6 +18,12 @@ pub trait Element {
     fn parse(&self, lexer: &mut dyn Lexer, res: &mut Vec<Box<dyn AstTree>>) -> Result<(), String>;
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool { false }
+
+    fn el_actual_type_id(&self) -> TypeId;
+
+    fn to_any_mut (&mut self) -> &mut dyn Any{
+        panic!("Element un support to_any_mut")
+    }
 }
 
 
@@ -42,6 +48,8 @@ impl Element for Tree {
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
         self.parser.borrow().is_match(lexer)
     }
+
+    ast_element_actual_type_id!{}
 }
 
 pub struct OrTree {
@@ -64,6 +72,10 @@ impl OrTree {
         }
         choose_tree
     }
+
+    pub fn insert(&mut self,parser: &Rc<RefCell<Parser>>) {
+        self.parser_vec.push(Rc::clone(parser));
+    }
 }
 
 impl Element for OrTree {
@@ -84,6 +96,12 @@ impl Element for OrTree {
 
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
         self.choose(lexer).is_some()
+    }
+
+    ast_element_actual_type_id!{}
+
+    fn to_any_mut(&mut self) -> &mut dyn Any {
+        self
     }
 }
 
@@ -126,11 +144,12 @@ impl Element for Repeat {
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
         self.parser.borrow().is_match(lexer)
     }
+
+    ast_element_actual_type_id!{}
 }
 
 
 // 终结符的实现都是一样的，使用宏定义
-// ast_impl_element_terminal! {IdToken,IdentifierLiteral,IdentifierLiteralFactory}
 ast_element_terminal_default_impl! {StrToken,StringLiteral,StringLiteralFactory}
 ast_element_terminal_default_impl! {NumToken, NumberLiteral,NumberLiteralFactory}
 pub struct IdToken {
@@ -170,6 +189,8 @@ impl Element for IdToken {
             IdentifierLiteral::is_match(box_token)
         }
     }
+
+    ast_element_actual_type_id!{}
 }
 
 #[derive(Debug)]
@@ -200,6 +221,8 @@ impl Element for Leaf {
             self.tokens.contains(token_value.value())
         } else { false }
     }
+
+    ast_element_actual_type_id!{}
 }
 
 pub struct Skip {
@@ -226,6 +249,8 @@ impl Element for Skip {
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
         self.leaf.is_match(lexer)
     }
+
+    ast_element_actual_type_id!{}
 }
 
 
@@ -388,4 +413,6 @@ impl Element for Expr {
     fn is_match(&self, lexer: &mut dyn Lexer) -> bool {
         self.factor.borrow().is_match(lexer)
     }
+
+    ast_element_actual_type_id!{}
 }

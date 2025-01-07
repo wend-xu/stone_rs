@@ -172,6 +172,18 @@ macro_rules! ast_element_terminal_default_impl {
                     $node_name::is_match(box_token)
                  }else { false }
             }
+
+            ast_element_actual_type_id!{}
+        }
+    }
+}
+
+/// Element 获取实际类型ID
+#[macro_export]
+macro_rules! ast_element_actual_type_id{
+    () => {
+        fn el_actual_type_id(&self) -> TypeId {
+            TypeId::of::<Self>()
         }
     }
 }

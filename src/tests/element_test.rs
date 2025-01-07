@@ -14,6 +14,7 @@ mod element_tests {
     use crate::token::TokenValue;
     use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
     use std::any::{Any, TypeId};
+    use std::cell::RefCell;
     use std::rc::Rc;
     use crate::ast::list::binary_expr::BinaryExprFactory;
 
@@ -271,5 +272,25 @@ i = 3*2(1+1)
         }
         let res_ast_tree = AstList::new_def(ast_tree_vec);
         println!("{}", res_ast_tree.location());
+    }
+
+    #[test]
+    fn down_cast() {
+        let mut vec: Vec<Box<dyn Element>> = vec![OrTree::new(vec![])];
+        let parser = Parser::rule_def().rc();
+
+
+        let mut vec_0 = vec.remove(0);
+        println!("{}",vec_0.el_actual_type_id() == TypeId::of::<OrTree>());
+
+        let mut vec_0_any: &mut dyn Any = vec_0.to_any_mut();
+        let option = vec_0_any.downcast_mut::<OrTree>();
+        match vec_0_any.downcast_mut::<OrTree>() {
+            None => {}
+            Some(down_cast) => {
+                down_cast.insert(&parser);
+            }
+        }
+
     }
 }
