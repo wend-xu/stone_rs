@@ -200,6 +200,7 @@ macro_rules! ast_leaf_factory_default_impl {
 #[macro_export]
 macro_rules! ast_list_factory_default_impl {
    ($factory_name:ident,$node_name:ident) => {
+      #[derive(Clone,Copy)]
       pub struct $factory_name {}
 
       impl $factory_name {
@@ -211,6 +212,10 @@ macro_rules! ast_list_factory_default_impl {
       impl crate::parser::factory::AstFactory for $factory_name {
           fn make(&self, res: Vec<Box<dyn  crate::ast::ast_tree::AstTree>>) -> Box<dyn  crate::ast::ast_tree::AstTree> {
               Box::new($node_name::new(res))
+          }
+
+          fn clone(&self) -> Box<dyn crate::parser::factory::AstFactory> {
+            Box::new(Clone::clone(self))
           }
       }
    }

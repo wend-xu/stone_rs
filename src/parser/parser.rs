@@ -52,8 +52,8 @@ impl Parser {
         self
     }
 
-    pub fn identifier(mut self, factory: Option<Box<dyn AstLeafFactory>>, reserved:Vec<&str>) -> Self {
-        self.elements.push(IdToken::new(factory,reserved));
+    pub fn identifier(mut self, factory: Option<Box<dyn AstLeafFactory>>, reserved: Vec<&str>) -> Self {
+        self.elements.push(IdToken::new(factory, reserved));
         self
     }
 
@@ -68,7 +68,7 @@ impl Parser {
         self
     }
 
-    pub fn ast(mut self,pat: &Rc<RefCell<Self>>) -> Self{
+    pub fn ast(mut self, pat: &Rc<RefCell<Self>>) -> Self {
         self.elements.push(Tree::new(pat));
         self
     }
@@ -96,17 +96,24 @@ impl Parser {
         self
     }
 
-    pub fn maybe(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
-        todo!("需要的时候在实现，用于数组类型")
+    // maybe 跟 option 的区别在于，可选值为空时是否需要在语法树挂载节点
+    pub fn maybe(mut self, repeat: &Rc<RefCell<Parser>>) -> Self {
+        let factory_copy = repeat.borrow().factory.clone();
+
+        let repeat = Rc::clone(repeat);
+        let maybe = Parser::rule(factory_copy).rc();
+
+        self.elements.push(OrTree::new(vec![repeat, maybe]));
+        self
     }
 
     pub fn option(mut self, repeat: &Rc<RefCell<Parser>>) -> Self {
-        self.elements.push(Repeat::new(repeat,true));
+        self.elements.push(Repeat::new(repeat, true));
         self
     }
 
     pub fn repeat(mut self, repeat: &Rc<RefCell<Parser>>) -> Self {
-        self.elements.push(Repeat::new(repeat,false));
+        self.elements.push(Repeat::new(repeat, false));
         self
     }
 
@@ -123,7 +130,9 @@ impl Parser {
     }
 
     pub fn insert_choice(mut self, factory: Option<Box<dyn AstFactory>>) -> Self {
-        todo!("需要的时候再实现")
+        let ele_0 = self.elements.get(0);
+
+        self
     }
 
     pub fn rc(mut self) -> Rc<RefCell<Self>> {

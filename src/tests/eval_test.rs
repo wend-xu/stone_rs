@@ -292,7 +292,7 @@ even + odd
         let res = _eval(code, &mut wrapper);
         println!(" even = {:?}", wrapper.get_ref("even").unwrap());
         println!(" odd = {:?}", wrapper.get_ref("odd").unwrap());
-        println!("res = {:?}", res);
+        println!(" res = {:?}", res);
         // println!(" k = {:?}", wrapper.get_ref("k").unwrap());
         // println!(" l = {:?}", wrapper.get_ref("l").unwrap());
 
@@ -313,7 +313,7 @@ even + odd
                 }
             };
             let is_null_sata = tree.actual_type_id() == TypeId::of::<NullStmt>();
-            println!("location:\n{}", tree.location());
+            // println!("location:\n{}", tree.location());
             // println!("location:\n{}", is_null_sata);
             if is_null_sata {
                 continue;

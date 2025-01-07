@@ -14,6 +14,8 @@ impl PrimaryExpr {
 
 ast_list_default_impl! { PrimaryExpr }
 
+
+#[derive(Copy, Clone)]
 pub struct PrimaryExprFactory {}
 impl PrimaryExprFactory {
     pub fn new() -> Box<Self> {
@@ -28,6 +30,10 @@ impl AstFactory for PrimaryExprFactory {
         } else {
             Box::new(PrimaryExpr::new(res))
         }
+    }
+
+    fn clone(&self) -> Box<dyn AstFactory> {
+        Box::new(Clone::clone(self))
     }
 }
 

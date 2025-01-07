@@ -4,12 +4,16 @@ use crate::token::Token;
 
 pub trait AstFactory {
     fn make(&self, res: Vec<Box<dyn AstTree>>) -> Box<dyn AstTree>;
+
+    fn clone(&self) -> Box<dyn AstFactory>;
 }
 
 
 pub trait AstLeafFactory {
     fn make(&self, res: Box<dyn Token>) -> Box<dyn AstTree>;
 }
+
+#[derive(Clone,Copy)]
 pub struct AstListFactory {}
 impl AstListFactory {
     pub fn new() -> Box<Self> {
@@ -24,6 +28,10 @@ impl AstFactory for AstListFactory {
         } else {
             Box::new(AstList::new_def(res))
         }
+    }
+
+    fn clone(&self) -> Box<dyn AstFactory> {
+        Box::new(Clone::clone(self))
     }
 }
 
