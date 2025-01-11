@@ -60,25 +60,18 @@ macro_rules! or {
         crate::parser::parser::Parser::rule_def().or( vec![ $(&$or,)* ])
     };
 
+    (primary: $($or:expr),*) => {
+        or!(factory crate::ast::list::primary_expr::PrimaryExprFactory::new(); $($or),*)
+    };
+
+    ($obj:ident; $($or:expr),*) => {
+       $obj.borrow_mut().or_ref( vec![ $(&$or,)* ] );
+    };
+
     ($($or:expr),*) => {
         crate::parser::parser::Parser::rule_def().or( vec![ $(&$or,)* ] ).rc()
     };
 }
-
-#[macro_export]
-macro_rules! or_primary {
-   ($($or:expr),*) => {
-        or!(factory crate::ast::list::primary_expr::PrimaryExprFactory::new(); $($or),*)
-    };
-}
-
-#[macro_export]
-macro_rules! or_for {
-   ($obj:ident; $($or:expr),*) => {
-       $obj.borrow_mut().or_ref( vec![ $(&$or,)* ] );
-   };
-}
-
 
 #[macro_export]
 macro_rules! seq {

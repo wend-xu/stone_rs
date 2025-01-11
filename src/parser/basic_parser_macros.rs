@@ -5,7 +5,7 @@ use crate::ast::list::binary_expr::BinaryExprFactory;
 use crate::parser::element::Operators;
 use crate::parser::parser::Parser;
 use crate::token::TokenValue;
-use crate::{expr, identifier, leaf, number, op, or, or_for, or_primary, rule, seq, string};
+use crate::{expr, identifier, leaf, number, op, or, rule, seq, string};
 use std::rc::Rc;
 
 pub fn stone_parser() -> Parser {
@@ -30,7 +30,7 @@ pub fn stone_parser() -> Parser {
     // 			  |simple
     // program   :  [ statement ] (";" | EOL)
     let primary =
-        or_primary!(seq!{seq: "(" expr ")"}, number!(), identifier!(reserved), string!());
+        or!(primary: seq!{seq: "(" expr ")"}, number!(), identifier!(reserved), string!());
 
     let factor = or!(seq!(neg: "-" primary),primary);
 
@@ -41,7 +41,7 @@ pub fn stone_parser() -> Parser {
 
     let simple = seq!(primary:expr);
 
-    or_for!(statement;
+    or!(statement;
         seq!(if : "if" expr block [ "else" block ]),
         seq!(while: "while" expr block),
         simple
