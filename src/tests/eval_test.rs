@@ -5,7 +5,7 @@ mod eval_tests {
     use crate::eval::eval::{EvalRes, Evaluate};
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
-    use crate::parser::basic_parser::stone_parser;
+    use crate::parser::basic_parser_macros::stone_parser;
     use crate::token::token_identifier::TokenIdentifier;
     use crate::token::TokenValue;
     use std::any::TypeId;

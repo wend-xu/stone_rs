@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod token_tests {
-    use regex::Regex;
-    use crate::parser::element::{Element, Leaf, Skip};
     use crate::lexer::line_reader_lexer::LineReaderLexer;
+    use crate::parser::element::{Element, Skip};
     use crate::token::TokenValue;
+    use regex::Regex;
 
     #[test]
     fn code_test() {
@@ -135,4 +135,5 @@ mod token_tests {
         let leaf =Skip::new(vec![";", TokenValue::literal_eol()]);
         println!("{}",leaf.is_match(&mut lexer));
     }
+
 }
