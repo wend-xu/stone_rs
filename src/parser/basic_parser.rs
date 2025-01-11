@@ -33,7 +33,7 @@ pub fn stone_parser() -> Parser {
         .or(vec![
             &Parser::rule_def().sep(vec!["("]).ast(&expr).sep(vec![")"]).rc(),
             &Parser::rule_def().number(Some(NumberLiteralFactory::new())).rc(),
-            &Parser::rule_def().identifier(Some(IdentifierLiteralFactory::new()), reserved).rc(),
+            &Parser::rule_def().identifier(Some(IdentifierLiteralFactory::new()), &reserved).rc(),
             &Parser::rule_def().string(Some(StringLiteralFactory::new())).rc()
         ]).rc();
 

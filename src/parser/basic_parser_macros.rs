@@ -30,7 +30,7 @@ pub fn stone_parser() -> Parser {
     // 			  |simple
     // program   :  [ statement ] (";" | EOL)
     let primary =
-        or!(primary: seq!{seq: "(" expr ")"}, number!(), identifier!(reserved), string!());
+        or!(primary: seq!{seq: "(" expr ")"}, number!(), identifier!(&reserved), string!());
 
     let factor = or!(seq!(neg: "-" primary),primary);
 

@@ -53,8 +53,8 @@ impl Parser {
         self
     }
 
-    pub fn identifier(mut self, factory: Option<Box<dyn AstLeafFactory>>, reserved: Vec<&str>) -> Self {
-        self.elements.push(IdToken::new(factory, reserved));
+    pub fn identifier(mut self, factory: Option<Box<dyn AstLeafFactory>>, reserved: &Vec<&str>) -> Self {
+        self.elements.push(IdToken::new(factory, &reserved));
         self
     }
 

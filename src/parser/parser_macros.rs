@@ -15,7 +15,7 @@ macro_rules! op {
 
 #[macro_export]
 macro_rules! leaf {
-    ( $leaf_name:ident, $factory:expr $(,$param:ident)* ) => {
+    ( $leaf_name:ident, $factory:expr $(,$param:expr)* ) => {
         crate::parser::parser::Parser::rule_def().$leaf_name(Some( $factory ), $($param,)* ).rc()
     }
 }
@@ -29,7 +29,7 @@ macro_rules! number {
 
 #[macro_export]
 macro_rules! identifier {
-    ($reserved:ident) => {
+    ($reserved:expr) => {
          leaf!(identifier,IdentifierLiteralFactory::new(),$reserved )
     }
 }

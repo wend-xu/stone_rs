@@ -37,7 +37,7 @@ mod element_tests {
         let code = "code".to_string();
         let mut lexer = LineReaderLexer::new(code);
         let factory = IdentifierLiteralFactory::new();
-        let x = IdToken::new(Some(factory), vec![]);
+        let x = IdToken::new(Some(factory), &vec![]);
         let mut res: Vec<Box<dyn AstTree>> = vec![];
         x.parse(&mut lexer, &mut res);
         println!("{}", res.get(0).unwrap().location());
