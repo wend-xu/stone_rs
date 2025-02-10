@@ -20,44 +20,22 @@ macro_rules! leaf {
     }
 }
 
-#[macro_export]
-macro_rules! number {
-    () => {
-         leaf!(number,NumberLiteralFactory::new())
-    }
-}
-
-#[macro_export]
-macro_rules! identifier {
-    ($reserved:expr) => {
-         leaf!(identifier,IdentifierLiteralFactory::new(),$reserved )
-    }
-}
-
-#[macro_export]
-macro_rules! string {
-    () => {
-         leaf!(string,StringLiteralFactory::new())
-    }
-}
 
 #[macro_export]
 macro_rules! rule {
     () => {
         crate::parser::parser::Parser::rule_def().rc()
     };
-
-
 }
 
 #[macro_export]
 macro_rules! or {
     (factory $factory:expr; $($or:expr),*) => {
-        crate::parser::parser::Parser::rule($factory).or( vec![ $(&$or,)* ] ).rc()
+        crate::parser::parser::Parser::rule($factory).or_owner( vec![ $(&$or,)* ] ).rc()
     };
 
     (no_rc: $($or:expr),*) => {
-        crate::parser::parser::Parser::rule_def().or( vec![ $(&$or,)* ])
+        crate::parser::parser::Parser::rule_def().or_owner( vec![ $(&$or,)* ])
     };
 
     (primary: $($or:expr),*) => {
@@ -65,11 +43,15 @@ macro_rules! or {
     };
 
     ($obj:ident; $($or:expr),*) => {
-       $obj.borrow_mut().or_ref( vec![ $(&$or,)* ] );
+       $obj.borrow_mut().or( vec![ $(&$or,)* ] );
     };
+    
+    ($obj:ident -> $($or:expr),*) => {
+       $obj.or( vec![ $(&$or,)* ] );
+    }; 
 
     ($($or:expr),*) => {
-        crate::parser::parser::Parser::rule_def().or( vec![ $(&$or,)* ] ).rc()
+        crate::parser::parser::Parser::rule_def().or_owner( vec![ $(&$or,)* ] ).rc()
     };
 }
 
@@ -79,9 +61,12 @@ macro_rules! seq {
 
     (seq: $($tail:tt) *) => {
        {
-           let mut seq = crate::parser::parser::Parser::rule_def();
-           seq!(seq -> $($tail)*);
-           seq.rc()
+           let mut parser = crate::parser::parser::Parser::rule_def().rc();
+           {
+               let mut seq = parser.borrow_mut();
+               seq!(seq -> $($tail)*);
+           }
+           parser
        }
     };
 
@@ -109,48 +94,92 @@ macro_rules! seq {
        seq!(factory crate::ast::list::null_stmt::NullStmtFactory::new(); seq : $($tail) *)
     };
 
+    (param_list: $($tail:tt) *) => {
+       seq!(factory crate::ast::list::paramter_list::ParameterListFactory::new(); seq : $($tail) *)
+    };
+
+    (args: $($tail:tt) *) => {
+       seq!(factory crate::ast::list::arguments::ArgumentsFactory::new(); seq : $($tail) *)
+    };
+
+    (def: $($tail:tt) *) => {
+       seq!(factory crate::ast::list::def_stmt::DefStmtFactory::new(); seq : $($tail) *)
+    };
+
+
     (factory $factory:expr;seq : $($tail:tt) *) => {
        {
-           let mut seq = crate::parser::parser::Parser::rule($factory);
-           seq!(seq -> $($tail)*);
-           seq.rc()
+           let parser = crate::parser::parser::Parser::rule($factory).rc();
+           {
+               let mut seq = parser.borrow_mut();
+               seq!(seq -> $($tail)*);
+           }
+           parser
        }
     };
 
-    ($seq:ident ->) => {};
+    ($obj:ident; seq : $($tail:tt) *) => {
+        {
+           let mut seq = $obj.borrow_mut();
+           seq!(seq -> $($tail)*);
+        }
+    };
+
+    ($seq:ident ->) => {
+    };
+
+    ($seq:ident -> id->$reserved:ident $($tail:tt)*) => {
+        $seq.identifier(Some(crate::ast::leaf::identifier_literal::IdentifierLiteralFactory::new()), &$reserved);
+        seq!($seq -> $($tail)*);
+    };
+
+    ($seq:ident -> string $($tail:tt)*) => {
+        $seq.string(Some(crate::ast::leaf::string_literal::StringLiteralFactory::new()));
+        seq!($seq -> $($tail)*);
+    };
+
+    ($seq:ident -> number $($tail:tt)*) => {
+        $seq.number(Some(crate::ast::leaf::number_literal::NumberLiteralFactory::new()));
+        seq!($seq -> $($tail)*);
+    };
 
     ($seq:ident -> ($($lt:literal),+) $($tail:tt)*) => {
-        $seq = $seq.sep(vec![ $($lt),+ ]);
+        $seq.sep(vec![ $($lt),+ ]);
         seq!($seq -> $($tail)*);
     };
 
     ($seq:ident -> $lt:literal $($tail:tt)*) => {
-        $seq = $seq.sep(vec![$lt]);
+        $seq.sep(vec![$lt]);
         seq!($seq -> $($tail)*);
     };
 
     ($seq:ident -> $ident:ident $($tail:tt)*) => {
-        $seq = $seq.ast(&$ident);
+        $seq.ast(&$ident);
+        seq!($seq -> $($tail)*);
+    };
+
+    ($seq:ident -> [$op:ident]+ $($tail:tt)*) => {
+        $seq.maybe(&$op);
         seq!($seq -> $($tail)*);
     };
 
     ($seq:ident -> [$op:ident] $($tail:tt)*) => {
-        $seq = $seq.option(&$op);
+        $seq.option(&$op);
         seq!($seq -> $($tail)*);
     };
 
     ($seq:ident -> [$($seq_op:tt)*] $($tail:tt)*) => {
-        $seq = $seq.option(&seq!($seq: $($seq_op)*));
+        $seq.option(&seq!($seq: $($seq_op)*));
         seq!($seq -> $($tail)*);
     };
 
     ($seq:ident -> {$repeat:ident} $($tail:tt)*) => {
-        $seq = $seq.repeat($repeat);
+        $seq.repeat(&$repeat);
         seq!($seq -> $($tail)*);
     };
 
     ($seq:ident -> {$($seq_repeat:tt)*} $($tail:tt)*) => {
-        $seq = $seq.repeat(&seq!($seq: $($seq_repeat)*));
+        $seq.repeat(&seq!($seq: $($seq_repeat)*));
         seq!($seq -> $($tail)*);
     };
 }

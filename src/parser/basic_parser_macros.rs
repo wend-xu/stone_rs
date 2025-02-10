@@ -1,12 +1,10 @@
-use crate::ast::leaf::identifier_literal::IdentifierLiteralFactory;
-use crate::ast::leaf::number_literal::NumberLiteralFactory;
-use crate::ast::leaf::string_literal::StringLiteralFactory;
 use crate::ast::list::binary_expr::BinaryExprFactory;
 use crate::parser::element::Operators;
 use crate::parser::parser::Parser;
 use crate::token::TokenValue;
-use crate::{expr, identifier, leaf, number, op, or, rule, seq, string};
+use crate::{expr, op, or, rule, seq};
 use std::rc::Rc;
+use crate::ast::list::primary_expr::PrimaryExprFactory;
 
 pub fn stone_parser() -> Parser {
     let reserved = vec!["}", ";", TokenValue::literal_eol()];
@@ -30,7 +28,9 @@ pub fn stone_parser() -> Parser {
     // 			  |simple
     // program   :  [ statement ] (";" | EOL)
     let primary =
-        or!(primary: seq!{seq: "(" expr ")"}, number!(), identifier!(&reserved), string!());
+        or!(primary: seq!{seq: "(" expr ")"},  seq!(seq: number),  seq!(seq: id->reserved), seq!(seq:string));
+
+    or!(primary: seq!{seq: "(" expr ")"} );
 
     let factor = or!(seq!(neg: "-" primary),primary);
 

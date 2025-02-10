@@ -60,6 +60,10 @@ pub fn wrapper_node_name(node_name: String) -> String {
 }
 
 pub fn wrapper_sub_block(root: String, sub_block: String) -> String {
+    if sub_block.len()  == 0 {
+        return root;
+    }
+
     let mut res = sub_block;
 
     let mut sub_block_lines = res.lines();

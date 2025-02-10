@@ -313,8 +313,6 @@ even + odd
                 }
             };
             let is_null_sata = tree.actual_type_id() == TypeId::of::<NullStmt>();
-            // println!("location:\n{}", tree.location());
-            // println!("location:\n{}", is_null_sata);
             if is_null_sata {
                 continue;
             }

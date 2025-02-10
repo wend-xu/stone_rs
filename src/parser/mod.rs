@@ -4,4 +4,4 @@ pub mod factory;
 pub mod basic_parser;
 pub mod parser_macros;
 pub mod basic_parser_macros;
-mod func_parser;
+pub mod func_parser;

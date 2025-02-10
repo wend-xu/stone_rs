@@ -1,15 +1,13 @@
-use crate::ast::leaf::identifier_literal::IdentifierLiteralFactory;
-use crate::ast::leaf::number_literal::NumberLiteralFactory;
-use crate::ast::leaf::string_literal::StringLiteralFactory;
 use crate::ast::list::binary_expr::BinaryExprFactory;
 use crate::parser::element::Operators;
 use crate::parser::parser::Parser;
 use crate::token::TokenValue;
-use crate::{expr, identifier, leaf, number, op, or, rule, seq, string};
+use crate::{expr, op, or, rule, seq};
 use std::rc::Rc;
 
 pub fn stone_parser_with_func() -> Parser {
-    let reserved = vec!["}", ";", TokenValue::literal_eol()];
+    let reserved = vec!["}", ";", TokenValue::literal_eol(),")"];
+
 
     let op: Rc<Operators> = op! {
         right 1 =;
@@ -17,31 +15,34 @@ pub fn stone_parser_with_func() -> Parser {
         left  3 +,-;
         left  4 *,/,% ;
     };
-    // 函数定义语法
-    let identifier = identifier!(&reserved);
-    let param = identifier!(&reserved);
-    let params = seq!(seq: param { "," param });
-    // 注意这里展开后使用的是 maybe
-    let param_list = seq!(seq: "(" [ params ] ")");
-    // let def = seq!(seq: "def" identifier!(&reserved) );
-
 
     let mut expr = rule!();
     let mut statement = rule!();
+    let mut block = seq!(block: );
 
+    // 函数定义语法
+    let param = seq!(seq: id->reserved);
+    let params = seq!(param_list: param { "," param });
+    // 注意这里展开后使用的是 maybe
+    let param_list = seq!(seq: "(" [ params ]+ ")");
+    let def = seq!(def: "def" id->reserved param_list block );
+
+    let args = seq!(args:  expr { "," expr });
+    // 这里的可选参数也应该是maybe
+    let postfix = seq!(seq: "(" [args]+ ")");
 
 
     let primary =
-        or!(primary: seq!{seq: "(" expr ")"}, number!(), identifier!(&reserved) , string!());
+        or!(primary: seq!{seq: "(" expr ")"},  seq!(seq: number),  seq!(seq: id->reserved), seq!(seq:string));
+    seq!(primary; seq : {postfix});
 
     let factor = or!(seq!(neg: "-" primary),primary);
 
     expr!(expr: factor { op factor });
 
-    let block =
-        seq!(block: "{" [ statement ]  { (";","\n") [ statement ] } "}" );
+    seq!(block; seq : "{" [ statement ]  { (";","\n") [ statement ] } "}" );
 
-    let simple = seq!(primary:expr);
+    let simple = seq!(primary:expr [ args ]);
 
     or!(statement;
         seq!(if : "if" expr block [ "else" block ]),
@@ -49,5 +50,5 @@ pub fn stone_parser_with_func() -> Parser {
         simple
     );
 
-    or!(no_rc: statement, seq!(null:(";","\n")) )
+    or!(no_rc: def  , seq!(null:(";","\n")) )
 }
