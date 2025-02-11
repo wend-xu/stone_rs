@@ -1,27 +1,15 @@
-use std::any::TypeId;
-use crate::ast::list::null_stmt::NullStmt;
-use crate::eval::environment::EnvWrapper;
-use crate::eval::eval::EvalRes;
 use crate::lexer::lexer::Lexer;
-use crate::parser::basic_parser_macros::stone_parser;
 
 #[cfg(test)]
 pub mod eval_test {
-    use std::any::TypeId;
     use crate::ast::ast_list::AstList;
     use crate::ast::ast_tree::AstTree;
-    use crate::ast::list::null_stmt::{is_null_stmt, NullStmt};
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use crate::parser::func_parser::stone_parser_with_func;
     use crate::parser::parser::Parser;
-    use crate::{or, seq};
-    use crate::ast::leaf::identifier_literal::IdentifierLiteral;
-    use crate::ast::list::paramter_list::ParameterListFactory;
-    use crate::parser::element::IdToken;
-    use crate::parser::factory::AstFactory;
-    use crate::token::token_identifier::TokenIdentifier;
     use crate::token::TokenValue;
+    use crate::{or, seq};
 
     #[test]
     pub fn def_match_test() {
@@ -29,7 +17,7 @@ pub mod eval_test {
         let param = seq!(seq: id->reserved);
         let params = seq!(param_list: param { "," param });
         // 注意这里展开后使用的是 maybe
-        let param_list = seq!(seq: "(" [ params ]+ ")");
+        let param_list = seq!(seq: "(" [ params ]* ")");
         let def = seq!(def: "def" id->reserved param_list);
         let parser = or!(no_rc: param_list  , seq!(null:(";","\n")) );
 

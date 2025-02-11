@@ -158,7 +158,7 @@ macro_rules! seq {
         seq!($seq -> $($tail)*);
     };
 
-    ($seq:ident -> [$op:ident]+ $($tail:tt)*) => {
+    ($seq:ident -> [$op:ident]* $($tail:tt)*) => {
         $seq.maybe(&$op);
         seq!($seq -> $($tail)*);
     };

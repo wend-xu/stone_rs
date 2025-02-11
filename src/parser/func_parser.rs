@@ -24,12 +24,12 @@ pub fn stone_parser_with_func() -> Parser {
     let param = seq!(seq: id->reserved);
     let params = seq!(param_list: param { "," param });
     // 注意这里展开后使用的是 maybe
-    let param_list = seq!(seq: "(" [ params ]+ ")");
+    let param_list = seq!(seq: "(" [ params ]* ")");
     let def = seq!(def: "def" id->reserved param_list block );
 
     let args = seq!(args:  expr { "," expr });
     // 这里的可选参数也应该是maybe
-    let postfix = seq!(seq: "(" [args]+ ")");
+    let postfix = seq!(seq: "(" [args]* ")");
 
 
     let primary =
