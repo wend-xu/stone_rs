@@ -8,7 +8,6 @@ use std::rc::Rc;
 pub fn stone_parser_with_func() -> Parser {
     let reserved = vec!["}", ";", TokenValue::literal_eol(),")"];
 
-
     let op: Rc<Operators> = op! {
         right 1 =;
         left  2 ==,>,<;

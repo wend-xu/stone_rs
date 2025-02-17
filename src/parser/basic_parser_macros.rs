@@ -30,8 +30,6 @@ pub fn stone_parser() -> Parser {
     let primary =
         or!(primary: seq!{seq: "(" expr ")"},  seq!(seq: number),  seq!(seq: id->reserved), seq!(seq:string));
 
-    or!(primary: seq!{seq: "(" expr ")"} );
-
     let factor = or!(seq!(neg: "-" primary),primary);
 
     expr!(expr: factor { op factor });
