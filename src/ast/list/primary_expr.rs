@@ -5,6 +5,7 @@ use crate::eval::environment::EnvWrapper;
 use crate::eval::eval::{EvalRes, Evaluate};
 use crate::parser::factory::AstFactory;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct PrimaryExpr {
     children: AstList,
 }

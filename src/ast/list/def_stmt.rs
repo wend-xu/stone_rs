@@ -3,6 +3,7 @@ use crate::{ast_list_default_impl, ast_list_default_new, ast_list_factory_defaul
 use crate::eval::environment::EnvWrapper;
 use crate::eval::eval::{EvalRes, Evaluate};
 
+#[derive(Debug, Clone, PartialEq)]
 struct DefStmt{
     children: AstList
 }

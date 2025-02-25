@@ -5,6 +5,7 @@ use crate::ast::ast_tree::AstTree;
 use crate::eval::environment::EnvWrapper;
 use crate::eval::eval::{EvalRes, Evaluate};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct NullStmt {
     children: AstList,
 }

@@ -2,7 +2,8 @@ use crate::ast::ast_tree::AstTree;
 use crate::eval::eval::Evaluate;
 use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
 use std::any::TypeId;
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter};
+use std::ops::Deref;
 use std::slice::Iter;
 
 /// 宏展开生成代码：
@@ -76,7 +77,52 @@ impl AstTree for AstList {
     fn eval(&self) -> Box<&dyn Evaluate> {
         panic!("[AstList][eval] unsupported eval type");
     }
+
+    fn copy_tree(&self) -> Box<dyn AstTree> {
+        Box::new(self.clone())
+    }
+
+    fn eq_tree(&self, other: &dyn AstTree) -> bool {
+        if other.actual_type_id() == TypeId::of::<AstList>() {
+            self == other.to_any().downcast_ref::<AstList>().unwrap()
+        } else { false }
+    }
 }
+
+impl Debug for AstList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.location())
+    }
+}
+
+impl Clone for AstList {
+    fn clone(&self) -> Self {
+        let mut child_copy: Vec<Box<dyn AstTree>> = vec![];
+
+        for child_one in &self.children {
+            child_copy.push(child_one.copy_tree());
+        }
+
+        AstList::new(self.node_name, child_copy)
+    }
+}
+
+impl PartialEq for AstList {
+    fn eq(&self, other: &Self) -> bool {
+        let self_children = &self.children;
+        let other_children = &other.children;
+        if self_children.len() != other_children.len()
+            || self.node_name != other.node_name {
+            false
+        } else {
+            for i in 0..self_children.len() {
+                if self_children[i].eq_tree(other_children[i].deref()) { return false; }
+            }
+            true
+        }
+    }
+}
+
 
 
 

@@ -1,10 +1,11 @@
 use crate::ast::ast_leaf::AstLeaf;
-use crate::eval::eval::{EvalRes, Evaluate};
-use crate::{ast_leaf_default_eval_impl, ast_leaf_default_impl, ast_leaf_default_new, ast_leaf_factory_default_impl};
 use crate::ast::ast_tree::AstTree;
 use crate::eval::environment::{Env, EnvWrapper};
+use crate::eval::eval::{EvalRes, Evaluate};
 use crate::token::TokenValue;
+use crate::{ast_leaf_default_impl, ast_leaf_default_new, ast_leaf_factory_default_impl};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct IdentifierLiteral {
     ast_leaf: AstLeaf,
 }

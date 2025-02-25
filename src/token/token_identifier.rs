@@ -4,7 +4,7 @@ use crate::token::{Token, TokenValue};
 ///标识符(identifier)指的是变量名、函数名或类名等名称。此外，+或-等运算符及括号等标
 /// 点符号也属于标识符。标点符号与保留字有时也会被归为另一种类型的单词，不过Stone语言在
 /// 实现时没有对它们加以区分，都作为标识符处理。
-#[derive(Debug)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct TokenIdentifier {
     token_line: TokenLine,
     identifier: TokenValue,
@@ -29,5 +29,9 @@ impl Token for TokenIdentifier {
 
     fn line_number(&self) -> &usize {
         &self.token_line
+    }
+
+    fn clone_token(&self) -> Box<dyn Token> {
+        Box::new(self.clone())
     }
 }

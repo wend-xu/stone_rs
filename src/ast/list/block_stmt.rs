@@ -6,6 +6,7 @@ use crate::ast::list::null_stmt::{is_null_stmt, NullStmt};
 use crate::eval::environment::EnvWrapper;
 use crate::eval::eval::{EvalRes, Evaluate};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct BlockStmt {
     children: AstList,
 }

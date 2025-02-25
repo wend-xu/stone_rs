@@ -1,4 +1,6 @@
 use crate::ast::ast_tree::AstTree;
+use crate::ast::list::block_stmt::BlockStmt;
+use crate::ast::list::paramter_list::ParameterList;
 use crate::eval::environment::EnvWrapper;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -9,6 +11,7 @@ pub enum EvalRes {
     BOOLEAN(bool),
     Struct(Vec<EvalRes>),
     VOID,
+    FUNCTION(String, ParameterList, BlockStmt),
 }
 
 impl EvalRes {
@@ -60,6 +63,7 @@ impl PartialEq<str> for EvalRes {
             EvalRes::BOOLEAN(_) => { false }
             EvalRes::Struct(_) => { false }
             EvalRes::VOID => { false }
+            EvalRes::FUNCTION(_, _, _) => { false }
         }
     }
 }

@@ -66,6 +66,16 @@ macro_rules! ast_leaf_default_impl {
             fn to_any(& self) -> &dyn std::any::Any{
                 self
             }
+
+            fn copy_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
+                std::boxed::Box::new(self.clone())
+            }
+
+            fn eq_tree(&self, other: &dyn crate::ast::ast_tree::AstTree) -> bool {
+                if self.actual_type_id() == std::any::TypeId::of::<$node_name>() {
+                    self.ast_leaf == other.to_any().downcast_ref::<$node_name>().unwrap().ast_leaf
+                }else { false }
+            }
        }
     };
 }
@@ -117,6 +127,12 @@ macro_rules! ast_list_default_impl {
 
             fn eval(&self) -> Box<&dyn crate::eval::eval::Evaluate> {
                 Box::new(self)
+            }
+
+            fn copy_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
+                let children_copy = self.children.copy_tree();
+                let self_copy = Self::new(vec![children_copy]);
+                Box::new(self_copy)
             }
        }
     };

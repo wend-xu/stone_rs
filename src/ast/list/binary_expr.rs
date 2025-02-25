@@ -6,6 +6,7 @@ use crate::eval::eval::{EvalRes, Evaluate};
 use crate::{ast_list_default_impl, ast_list_default_new, ast_list_factory_default_impl, number_compute};
 use crate::ast::leaf::identifier_literal::IdentifierLiteral;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct BinaryExpr {
     children: AstList,
 }
