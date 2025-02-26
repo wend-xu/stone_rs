@@ -15,15 +15,15 @@ pub trait AstTree {
 
     fn eval(&self) -> Box<&dyn Evaluate>;
 
-    fn to_any (&self) -> &dyn Any{
-        panic!("Element un support to_any")
-    }
+    fn to_any (&self) -> &dyn Any;
 
     fn copy_tree(&self) -> Box<dyn AstTree>;
 
-    fn eq_tree(&self, other:&dyn AstTree) -> bool{
-        false
-    }
+    fn eq_tree(&self, other:&dyn AstTree) -> bool;
+
+    // fn eq_tree(&self, other:&dyn AstTree) -> bool{
+    //     false
+    // }
 }
 
 

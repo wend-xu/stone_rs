@@ -1,7 +1,7 @@
 use crate::ast::ast_tree::AstTree;
 use crate::eval::eval::Evaluate;
 use crate::util::str_util::{lines_concat_with_divide, wrapper_node_name, wrapper_sub_block};
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::fmt::{Debug, Formatter};
 use std::ops::Deref;
 use std::slice::Iter;
@@ -78,6 +78,10 @@ impl AstTree for AstList {
         panic!("[AstList][eval] unsupported eval type");
     }
 
+    fn to_any(&self) -> &dyn Any {
+        self
+    }
+
     fn copy_tree(&self) -> Box<dyn AstTree> {
         Box::new(self.clone())
     }
@@ -116,7 +120,7 @@ impl PartialEq for AstList {
             false
         } else {
             for i in 0..self_children.len() {
-                if self_children[i].eq_tree(other_children[i].deref()) { return false; }
+                if !self_children[i].eq_tree(other_children[i].deref()) { return false; }
             }
             true
         }

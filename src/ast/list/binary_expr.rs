@@ -82,6 +82,7 @@ impl BinaryExpr {
 
 ast_list_default_impl! {BinaryExpr}
 
+
 ast_list_factory_default_impl! {BinaryExprFactory,BinaryExpr}
 
 impl Evaluate for BinaryExpr {

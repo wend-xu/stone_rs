@@ -129,10 +129,20 @@ macro_rules! ast_list_default_impl {
                 Box::new(self)
             }
 
+            fn to_any(& self) -> &dyn std::any::Any{
+                self
+            }
+
             fn copy_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
                 let children_copy = self.children.copy_tree();
                 let self_copy = Self::new(vec![children_copy]);
                 Box::new(self_copy)
+            }
+
+            fn eq_tree(&self, other:&dyn crate::ast::ast_tree::AstTree) -> bool {
+                 if other.actual_type_id() == std::any::TypeId::of::<$node_name>() {
+                     self == other.to_any().downcast_ref::<$node_name>().unwrap()
+                 }else{ false }
             }
        }
     };

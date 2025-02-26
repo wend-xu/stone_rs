@@ -3,7 +3,7 @@ use crate::ast_leaf_factory_default_impl;
 use crate::eval::eval::Evaluate;
 use crate::token::Token;
 use crate::util::str_util::wrapper_node_name;
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::slice::Iter;
 
 #[derive(Debug, Clone)]
@@ -50,6 +50,10 @@ impl AstTree for AstLeaf {
         panic!("[AstLeaf][eval] unsupported eval type");
     }
 
+    fn to_any(&self) -> &dyn Any {
+        self
+    }
+
     fn copy_tree(&self) -> Box<dyn AstTree> {
        Box::new(self.clone())
     }
@@ -63,7 +67,6 @@ impl AstTree for AstLeaf {
 
 ast_leaf_factory_default_impl! {DefAstLeafFactory,AstLeaf}
 
-// todo 这里需要测试一下，能否实现eq，他是box的eq还是token的eq
 impl PartialEq for AstLeaf {
     fn eq(&self, other: &Self) -> bool {
         self.token.eq(&other.token)

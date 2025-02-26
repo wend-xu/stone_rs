@@ -12,6 +12,7 @@ pub struct NullStmt {
 impl NullStmt {
     ast_list_default_new! { NullStmt }
 }
+
 ast_list_default_impl! { NullStmt }
 
 ast_list_factory_default_impl! {NullStmtFactory,NullStmt}
