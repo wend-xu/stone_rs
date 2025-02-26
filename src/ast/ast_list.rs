@@ -5,6 +5,7 @@ use std::any::{Any, TypeId};
 use std::fmt::{Debug, Formatter};
 use std::ops::Deref;
 use std::slice::Iter;
+use crate::ast::list::paramter_list::ParameterList;
 
 /// 宏展开生成代码：
 /// generate![BinaryExpr,BlockStmt,IfStmt,NegativeExpr,NullStmt,PrimaryExpr,WhileStmt];
@@ -37,6 +38,19 @@ impl AstList {
             Some(tree_node) => {
                 tree_node.actual_type_id();
                 Ok(tree_node.eval())
+            }
+        }
+    }
+
+    pub fn child_downcast<T: AstTree + Clone + 'static>(&self, index: usize) -> Result<T, String> {
+        match self.child(index) {
+            None => {
+                Err(format!("is none in index {index}"))
+            }
+            Some(tree_node) => {
+                if tree_node.actual_type_id() == TypeId::of::<T>() {
+                    Ok((*tree_node.to_any().downcast_ref::<T>().unwrap()).clone())
+                } else { Err("not the target type".to_string()) }
             }
         }
     }

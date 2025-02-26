@@ -10,6 +10,7 @@ pub mod eval_test {
     use crate::parser::parser::Parser;
     use crate::token::TokenValue;
     use crate::{or, seq};
+    use crate::eval::environment::EnvWrapper;
 
     #[test]
     pub fn def_match_test() {
@@ -42,12 +43,15 @@ pub mod eval_test {
                 even = 1
             }
         "#;
+        let mut wrapper = EnvWrapper::new();
         let mut lexer = LineReaderLexer::new(code.to_string());
         let parser = stone_parser_with_func();
-        _p_res(&mut lexer, &parser);
+        let list = _p_res(&mut lexer, &parser);
+        let x = list.child(1).unwrap().eval().do_eval(&mut wrapper);
+        println!("{:?}", x);
     }
 
-    fn _p_res(lexer: &mut dyn Lexer, parser: &Parser) {
+    fn _p_res(lexer: &mut dyn Lexer, parser: &Parser) -> AstList {
         let mut err = None;
         let mut ast_tree_vec: Vec<Box<dyn AstTree>> = vec![];
         while let Some(token) = lexer.peek(0) {
@@ -72,9 +76,10 @@ pub mod eval_test {
             if let Err(err_msg) = err {
                 println!("{}", err_msg);
             }
-            return;
+            panic!()
         }
         let res_ast_tree = AstList::new_def(ast_tree_vec);
         println!("{}", res_ast_tree.location());
+        res_ast_tree
     }
 }

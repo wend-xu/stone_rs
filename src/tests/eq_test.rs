@@ -6,7 +6,6 @@ mod eq_tests {
     use crate::ast::leaf::number_literal::NumberLiteral;
     use crate::ast::leaf::string_literal::StringLiteral;
     use crate::eval::environment::EnvWrapper;
-    use crate::eval::eval::EvalRes;
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
     use crate::parser::basic_parser_macros::stone_parser;
@@ -141,13 +140,12 @@ if j < -1 {
         let mut lexer = LineReaderLexer::new(code.to_string());
         let mut lexer_2 = LineReaderLexer::new(code.to_string());
         let parser = stone_parser();
-        let mut res = EvalRes::VOID;
         while let Some(_) = lexer.peek(0) {
             let tree_res = parser.parse(&mut lexer).unwrap();
-            println!("{}", tree_res.location());
+            // println!("{}", tree_res.location());
             let tree_res_2 = parser.parse(&mut lexer_2).unwrap();
-            println!("{}", tree_res_2.location());
-            println!("{}", tree_res.location() == tree_res_2.location());
+            // println!("{}", tree_res_2.location());
+            // println!("{}", tree_res.location() == tree_res_2.location());
             let x = tree_res_2.deref();
             println!("{:?}", tree_res.actual_type_id());
             println!("{:?}", x.actual_type_id());
