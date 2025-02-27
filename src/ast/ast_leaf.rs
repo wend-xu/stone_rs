@@ -54,7 +54,7 @@ impl AstTree for AstLeaf {
         self
     }
 
-    fn copy_tree(&self) -> Box<dyn AstTree> {
+    fn clone_tree(&self) -> Box<dyn AstTree> {
        Box::new(self.clone())
     }
 

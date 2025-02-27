@@ -10,7 +10,8 @@ pub mod eval_test {
     use crate::parser::parser::Parser;
     use crate::token::TokenValue;
     use crate::{or, seq};
-    use crate::eval::environment::EnvWrapper;
+    use crate::eval::environment::{Env, EnvWrapper};
+    use crate::eval::eval::{EvalRes, Evaluate};
 
     #[test]
     pub fn def_match_test() {
@@ -47,8 +48,41 @@ pub mod eval_test {
         let mut lexer = LineReaderLexer::new(code.to_string());
         let parser = stone_parser_with_func();
         let list = _p_res(&mut lexer, &parser);
-        let x = list.child(1).unwrap().eval().do_eval(&mut wrapper);
-        println!("{:?}", x);
+
+        let res = list.child(1).unwrap().eval().do_eval(&mut wrapper);
+        println!("{:?}", res);
+        let func_name = res.unwrap();
+        match  wrapper.get(func_name.to_string().as_str()).unwrap() {
+            EvalRes::FUNCTION(fun_name, param_list , block) => {
+                println!("函数名称：{}",fun_name);
+                println!("代码块：\n{}",block.location());
+                let eval_res = block.do_eval(&mut wrapper);
+                println!("{:?}",eval_res);
+            }
+            _ => {}
+        }
+
+
+    }
+
+
+    #[test]
+    pub fn func_tree_clone_test() {
+        let code = "even = 1";
+        let mut wrapper = EnvWrapper::new();
+        let mut lexer = LineReaderLexer::new(code.to_string());
+        let parser = stone_parser_with_func();
+        let list = _p_res(&mut lexer, &parser);
+
+        let res = list.child(0).unwrap();
+        println!("\n\n\n\n\n\n\n{} \n\n\n\n\n\n\n",res.location());
+        let x = (*res).clone_tree();
+        println!("\n\n\n\n\n\n\n{} \n\n\n\n\n\n\n",x.location());
+
+        let ast_list = AstList::new("aaaa", vec![x]);
+        println!("\n\n\n\n\n\n\n{} \n\n\n\n\n\n\n",ast_list.location());
+        println!("{}",ast_list.clone().location());
+
     }
 
     fn _p_res(lexer: &mut dyn Lexer, parser: &Parser) -> AstList {

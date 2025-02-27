@@ -49,5 +49,5 @@ pub fn stone_parser_with_func() -> Parser {
         simple
     );
 
-    or!(no_rc: def  , seq!(null:(";","\n")) )
+    or!(no_rc: def  , statement, seq!(null:(";","\n")) )
 }

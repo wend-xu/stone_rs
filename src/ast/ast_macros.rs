@@ -67,7 +67,7 @@ macro_rules! ast_leaf_default_impl {
                 self
             }
 
-            fn copy_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
+            fn clone_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
                 std::boxed::Box::new(self.clone())
             }
 
@@ -133,10 +133,9 @@ macro_rules! ast_list_default_impl {
                 self
             }
 
-            fn copy_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
-                let children_copy = self.children.copy_tree();
-                let self_copy = Self::new(vec![children_copy]);
-                Box::new(self_copy)
+            fn clone_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
+                let self_clone = (*self).clone();
+                Box::new(self_clone)
             }
 
             fn eq_tree(&self, other:&dyn crate::ast::ast_tree::AstTree) -> bool {

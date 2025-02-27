@@ -48,7 +48,9 @@ impl AstList {
                 Err(format!("is none in index {index}"))
             }
             Some(tree_node) => {
+                println!("child_downcast\n{}", tree_node.location());
                 if tree_node.actual_type_id() == TypeId::of::<T>() {
+
                     Ok((*tree_node.to_any().downcast_ref::<T>().unwrap()).clone())
                 } else { Err("not the target type".to_string()) }
             }
@@ -96,7 +98,7 @@ impl AstTree for AstList {
         self
     }
 
-    fn copy_tree(&self) -> Box<dyn AstTree> {
+    fn clone_tree(&self) -> Box<dyn AstTree> {
         Box::new(self.clone())
     }
 
@@ -115,13 +117,13 @@ impl Debug for AstList {
 
 impl Clone for AstList {
     fn clone(&self) -> Self {
-        let mut child_copy: Vec<Box<dyn AstTree>> = vec![];
+        let mut child_clone: Vec<Box<dyn AstTree>> = vec![];
 
         for child_one in &self.children {
-            child_copy.push(child_one.copy_tree());
+            child_clone.push(child_one.clone_tree());
         }
 
-        AstList::new(self.node_name, child_copy)
+        AstList::new(self.node_name, child_clone)
     }
 }
 

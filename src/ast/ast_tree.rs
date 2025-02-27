@@ -17,7 +17,7 @@ pub trait AstTree {
 
     fn to_any (&self) -> &dyn Any;
 
-    fn copy_tree(&self) -> Box<dyn AstTree>;
+    fn clone_tree(&self) -> Box<dyn AstTree>;
 
     fn eq_tree(&self, other:&dyn AstTree) -> bool;
 
