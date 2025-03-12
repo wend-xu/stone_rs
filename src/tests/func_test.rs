@@ -2,6 +2,8 @@ use crate::lexer::lexer::Lexer;
 
 #[cfg(test)]
 pub mod eval_test {
+    use std::any::Any;
+    use std::iter::Map;
     use crate::ast::ast_list::AstList;
     use crate::ast::ast_tree::AstTree;
     use crate::lexer::lexer::Lexer;
@@ -10,8 +12,13 @@ pub mod eval_test {
     use crate::parser::parser::Parser;
     use crate::token::TokenValue;
     use crate::{or, seq};
-    use crate::eval::environment::{Env, EnvWrapper};
+    use crate::ast::leaf::identifier_literal::IdentifierLiteral;
+    use crate::ast::list::arguments::Arguments;
+    use crate::eval::environment::{Env, EnvWrapper, MapNestedEnv};
     use crate::eval::eval::{EvalRes, Evaluate};
+    use crate::parser::element::StrToken;
+    use crate::token::token_identifier::TokenIdentifier;
+    use crate::token::token_string::TokenString;
 
     #[test]
     pub fn def_match_test() {
@@ -40,9 +47,11 @@ pub mod eval_test {
     #[test]
     pub fn func_tree_test() {
         let code = r#"
-            def hahha ( aaa ){
+            def hahha ( aaa,bbb ){
                 even = 1
             }
+
+            hahha(aa,b)(c,d)
         "#;
         let mut wrapper = EnvWrapper::new();
         let mut lexer = LineReaderLexer::new(code.to_string());
@@ -115,5 +124,26 @@ pub mod eval_test {
         let res_ast_tree = AstList::new_def(ast_tree_vec);
         println!("{}", res_ast_tree.location());
         res_ast_tree
+    }
+
+    #[test]
+    fn test() {
+        // let literal = IdentifierLiteral::new(TokenIdentifier::new(1,"a"));
+        //
+        // let arguments = Arguments::new(vec![literal]);
+        //
+        // let mut wrapper = EnvWrapper::new();
+        // let res = arguments.do_eval_postfix(&mut wrapper, EvalRes::VOID);
+        //
+        let mut wrapper = EnvWrapper::new();
+        let nested_env = MapNestedEnv::new_with( &mut wrapper);
+
+        // let wrapper2 = EnvWrapper::new();
+        //
+        // let wrapper3 = EnvWrapper::new_nest();
+    }
+
+    fn test_inner<'a>(wrapper:&'a mut EnvWrapper<'a>) {
+        let nested_env = MapNestedEnv::new_with(wrapper);
     }
 }

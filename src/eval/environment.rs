@@ -14,25 +14,31 @@ pub trait Env {
     fn where_env(&mut self, key: &str) -> Option<Box<&mut dyn Env>>;
 
     fn put_new(&mut self, key: String, val: EvalRes) -> Result<(), &'static str>;
+
+    // fn set_outer(&mut self, outer: &'static mut EnvWrapper) -> Result<(), &'static str>;
 }
 
-pub struct EnvWrapper<E: Env = MapEnv> {
-    env: E,
+pub struct EnvWrapper<'wrapper> {
+    env: Box<dyn Env+'wrapper>,
 }
 
-impl EnvWrapper {
-    pub fn new() -> EnvWrapper {
+impl<'wrapper> EnvWrapper<'wrapper> {
+    pub fn new() -> EnvWrapper<'wrapper> {
         EnvWrapper {
-            env: MapEnv::new()
+            env: Box::new(MapEnv::new())
         }
     }
 
-    pub fn new_with<E: Env>(env: E) -> EnvWrapper<E> {
-        EnvWrapper::<E> { env }
+    pub fn new_nest() -> EnvWrapper<'wrapper> {
+        EnvWrapper::new_with(Box::new(MapEnv::new()))
+    }
+
+    pub fn new_with(env: Box<dyn Env+'wrapper>) -> EnvWrapper<'wrapper> {
+        EnvWrapper { env }
     }
 }
 
-impl Env for EnvWrapper {
+impl<'wrapper> Env for EnvWrapper<'wrapper>{
     fn get(&mut self, key: &str) -> Result<EvalRes, String> {
         self.env.get(key)
     }
@@ -57,6 +63,7 @@ impl Env for EnvWrapper {
     fn put_new(&mut self, key: String, val: EvalRes) -> Result<(), &'static str> {
         self.env.put_new(key, val)
     }
+
 }
 
 
@@ -105,38 +112,54 @@ impl Env for MapEnv {
         self.env_map.insert(key, val);
         Ok(())
     }
+
 }
 
-pub struct MapNestedEnv {
+pub struct MapNestedEnv<'outer,'env> {
     env_map: HashMap<String, EvalRes>,
-    outer: MapEnv,
+    outer: Option<&'outer mut EnvWrapper<'env>>,
 }
 
-impl MapNestedEnv {
-    fn new(outer: MapEnv) -> MapNestedEnv {
-        MapNestedEnv {
+impl<'outer,'env> MapNestedEnv<'outer,'env> {
+    pub fn new() -> MapNestedEnv<'outer,'env> {
+        MapNestedEnv::<'outer,'env> {
             env_map: HashMap::new(),
-            outer,
+            outer: None,
         }
     }
 
-    fn set_outer(&mut self, outer: MapEnv) {
-        self.outer = outer;
+    pub fn new_with(outer: &'outer mut EnvWrapper<'env>) -> MapNestedEnv<'outer,'env> {
+        MapNestedEnv::<'outer,'env> {
+            env_map: HashMap::new(),
+            outer: Some(outer),
+        }
+    }
+
+    pub fn wrapper(self) -> EnvWrapper<'outer> {
+        EnvWrapper::new_with(Box::new(self))
+    }
+
+    pub fn set_outer(&mut self, outer: &'outer mut EnvWrapper<'env>) -> &mut MapNestedEnv<'outer,'env> {
+        self.outer = Some(outer);
+        self
     }
 }
 
-impl Env for MapNestedEnv {
+
+
+
+impl<'outer,'env> Env for MapNestedEnv<'outer,'env> {
     fn get(&mut self, key: &str) -> Result<EvalRes, String> {
         let mut value_op = self.env_map.remove(key);
-        if value_op.is_none() {
-            self.outer.get(key)
+        if value_op.is_none() && self.outer.is_some() {
+            self.outer.as_mut().unwrap().get(key)
         } else { Ok(value_op.unwrap()) }
     }
 
     fn get_ref(&self, key: &str) -> Result<&EvalRes, String> {
         let value_ref_op = self.env_map.get(key);
-        if value_ref_op.is_none() {
-            self.outer.get_ref(key)
+        if value_ref_op.is_none() && self.outer.is_some() {
+            self.outer.as_ref().unwrap().get_ref(key)
         } else { Ok(value_ref_op.unwrap()) }
     }
 
@@ -160,12 +183,12 @@ impl Env for MapNestedEnv {
     }
 
     fn where_env(&mut self, key: &str) -> Option<Box<&mut dyn Env>> {
-        if self.env_map.contains_key(key) { Some(Box::new(self)) } else { self.outer.where_env(key) }
+        if self.env_map.contains_key(key) { Some(Box::new(self)) } else if self.outer.is_some() { self.outer.as_mut().unwrap().where_env(key) } else { None }
     }
 
     fn put_new(&mut self, key: String, val: EvalRes) -> Result<(), &'static str> {
         self.env_map.insert(key, val);
         Ok(())
     }
-}
 
+}

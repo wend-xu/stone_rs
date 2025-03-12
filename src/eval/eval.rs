@@ -71,6 +71,10 @@ impl PartialEq<str> for EvalRes {
 
 pub trait Evaluate {
     fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String>;
+
+    fn do_eval_postfix(&self, env: &mut EnvWrapper,  result: EvalRes) -> Result<EvalRes, String> {
+      panic!("[Evaluate][do_eval_postfix] just impl in postfix type")
+    }
 }
 
 
