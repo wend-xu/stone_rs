@@ -34,7 +34,7 @@ mod element_tests {
     #[test]
     fn token_test() {
         let code = "code".to_string();
-        let mut lexer = LineReaderLexer::new(code);
+        let mut lexer = LineReaderLexer::new_with_code(code);
         let factory = IdentifierLiteralFactory::new();
         let x = IdToken::new(Some(factory), &vec![]);
         let mut res: Vec<Box<dyn AstTree>> = vec![];
@@ -47,7 +47,7 @@ mod element_tests {
         let leaf = Leaf::new(vec!["(", ")"]);
         println!("{:?}", leaf);
         let code = "(".to_string();
-        let mut lexer = LineReaderLexer::new(code);
+        let mut lexer = LineReaderLexer::new_with_code(code);
         println!("{}", leaf.is_match(&mut lexer));
     }
 
@@ -76,7 +76,7 @@ mod element_tests {
         let mut test = Test { vec: vec![] };
         test.add_not_generic(OrTree::new(vec![]));
         let num_token = NumToken::new(None);
-        let mut lexer = LineReaderLexer::new("111".to_string());
+        let mut lexer = LineReaderLexer::new_with_code("111".to_string());
         let ref_num_token = &NumToken::new(None);
         // println!("match {}",num_token.is_match(&mut lexer));
         println!("match {}", ref_num_token.is_match(&mut lexer));
@@ -131,7 +131,7 @@ while i < 10 {
 }
         ";
 
-        let mut lexer = LineReaderLexer::new(code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(code.to_string());
         println!("分词完成");
         let parser = stone_parser();
         println!("语法解析器完成");
@@ -185,7 +185,7 @@ while i < 10 {
     #[test]
     pub fn concat_test_3() {
         let leaf = Leaf::new(vec!["(", ")", "\n"]);
-        println!("{}", leaf.is_match(&mut LineReaderLexer::new("\n".to_string())));
+        println!("{}", leaf.is_match(&mut LineReaderLexer::new_with_code("\n".to_string())));
         let mut operators = Operators::new();
         operators.add(Precedence::right("=", 1));
         operators.add(Precedence::left("==", 2));
@@ -216,7 +216,7 @@ while i < 10 {
 }
 even + odd
         ";
-        let mut lexer = LineReaderLexer::new(code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(code.to_string());
         println!("分词完成");
         let parser = stone_parser();
         println!("语法解析器完成");
@@ -229,7 +229,7 @@ even + odd
 i = 3*2(1+1)
         ";
 
-        let mut lexer = LineReaderLexer::new(code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(code.to_string());
         println!("分词完成 \n {}", lexer);
         let parser = stone_parser();
         println!("语法解析器完成");

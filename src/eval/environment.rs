@@ -171,7 +171,7 @@ impl<'outer,'env> Env for MapNestedEnv<'outer,'env> {
                 Ok(())
             }
             Some(mut env_had) => {
-                env_had.put(key, val)
+                env_had.put_new(key, val)
             }
         }
     }
@@ -183,7 +183,9 @@ impl<'outer,'env> Env for MapNestedEnv<'outer,'env> {
     }
 
     fn where_env(&mut self, key: &str) -> Option<Box<&mut dyn Env>> {
-        if self.env_map.contains_key(key) { Some(Box::new(self)) } else if self.outer.is_some() { self.outer.as_mut().unwrap().where_env(key) } else { None }
+        if self.env_map.contains_key(key) { Some(Box::new(self)) }
+        else if self.outer.is_some() { self.outer.as_mut().unwrap().where_env(key) }
+        else { None }
     }
 
     fn put_new(&mut self, key: String, val: EvalRes) -> Result<(), &'static str> {

@@ -137,8 +137,8 @@ if j < -1 {
     l = 5
 }
 "#;
-        let mut lexer = LineReaderLexer::new(code.to_string());
-        let mut lexer_2 = LineReaderLexer::new(code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(code.to_string());
+        let mut lexer_2 = LineReaderLexer::new_with_code(code.to_string());
         let parser = stone_parser();
         while let Some(_) = lexer.peek(0) {
             let tree_res = parser.parse(&mut lexer).unwrap();

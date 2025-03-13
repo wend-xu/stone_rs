@@ -66,7 +66,11 @@ pub fn match_line_regex_str() -> String {
 
 /// read_line : 解析一行代码
 impl LineReaderLexer {
-    pub fn new(code: String) -> LineReaderLexer {
+    pub fn new() -> LineReaderLexer {
+        Self::new_with_code("".to_string())
+    }
+
+    pub fn new_with_code(code: String) -> LineReaderLexer {
         let match_line = match_line_regex_str();
         let match_line_regex: Regex = Regex::new(match_line.as_str()).unwrap();
         Self::new_with_regex(code, match_line_regex)
@@ -181,5 +185,15 @@ impl Lexer for LineReaderLexer {
         if try_read_line {
             self.read_line().token_queue.get(index)
         } else { self.token_queue.get(index) }
+    }
+
+    fn reset_read(&mut self) {
+        self.token_queue.clear();
+        self.current_line = 0;
+    }
+
+    fn reset_code(&mut self, code: String) {
+        self.reset_read();
+        self.code = code.lines().map(|line| line.to_string()).collect();
     }
 }

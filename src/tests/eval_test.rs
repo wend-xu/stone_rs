@@ -299,7 +299,7 @@ even + odd
     }
 
     fn _eval(code: String, env: &mut EnvWrapper) -> EvalRes {
-        let mut lexer = LineReaderLexer::new(code);
+        let mut lexer = LineReaderLexer::new_with_code(code);
         let parser = stone_parser();
         let mut res = EvalRes::VOID;
         while let Some(_) = lexer.peek(0) {

@@ -131,7 +131,7 @@ mod token_tests {
         println!("eq? {}", (identifier_1 == identifier_3));
         println!("eq? {}", (identifier_3 == identifier_4));
 
-        let mut lexer = LineReaderLexer::new(";".to_string());
+        let mut lexer = LineReaderLexer::new_with_code(";".to_string());
         let leaf =Skip::new(vec![";", TokenValue::literal_eol()]);
         println!("{}",leaf.is_match(&mut lexer));
     }

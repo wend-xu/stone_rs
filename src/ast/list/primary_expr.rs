@@ -68,6 +68,5 @@ impl AstFactory for PrimaryExprFactory {
 impl Evaluate for PrimaryExpr {
     fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
         self.eval_sub_expr(env, 0)
-        // todo!()
     }
 }

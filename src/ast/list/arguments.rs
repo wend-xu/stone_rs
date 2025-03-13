@@ -34,17 +34,11 @@ impl Evaluate for Arguments {
                     return Err(format!("[Arguments][do_eval_postfix] incorrect arg num {} , need {} in function's param list",
                                        self.children.num_children(), param_list.num_children()));
                 }
-
                 // 捕捉执行环境后，将环境的引入转入被内部
                 let mut nest_env = MapNestedEnv::new();
-                for (index,arg) in self.children().enumerate() {
+                for (index, arg) in self.children().enumerate() {
+                    let param_name = param_list.param_name(env, index)?;
                     let arg_val = arg.eval().do_eval(env)?;
-                    let param_one =
-                        param_list.child_req(index,format!("[Arguments][do_eval_postfix] is None in child index {}",index))?;
-                    if param_one.actual_type_id() != TypeId::of::<IdentifierLiteral>(){
-                        return Err(format!("[Arguments][do_eval_postfix] param not a IdentifierLiteral in child index {}",index));
-                    }
-                    let param_name = param_one.to_any().downcast_ref::<IdentifierLiteral>().unwrap().id_name();
                     nest_env.put(param_name, arg_val)?;
                 }
                 nest_env.set_outer(env);
