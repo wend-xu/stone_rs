@@ -1,13 +1,11 @@
-use std::any::TypeId;
-use std::f32::consts::E;
 use crate::ast::ast_list::AstList;
-use crate::{ast_list_default_impl, ast_list_default_new, ast_list_factory_default_impl, or};
 use crate::ast::ast_tree::AstTree;
 use crate::ast::leaf::identifier_literal::IdentifierLiteral;
 use crate::ast::list::block_stmt::BlockStmt;
 use crate::ast::list::paramter_list::ParameterList;
 use crate::eval::environment::{Env, EnvWrapper};
 use crate::eval::eval::{EvalRes, Evaluate};
+use crate::{ast_list_default_impl, ast_list_default_new, ast_list_factory_default_impl};
 
 #[derive(Debug, Clone, PartialEq)]
 struct DefStmt {
@@ -46,7 +44,7 @@ ast_list_factory_default_impl! { DefStmtFactory,DefStmt }
 impl Evaluate for DefStmt {
     fn do_eval(&self, env: &mut EnvWrapper) -> Result<EvalRes, String> {
         let def_name = self.def_name()?;
-        let function = EvalRes::FUNCTION(def_name.clone(), self.param_list()?, self.block_stmt()?);
+        let function = EvalRes::FUNCTION(Some(def_name.clone()), self.param_list()?, self.block_stmt()?);
         env.put(def_name.clone(), function)?;
         Ok(EvalRes::StringVal(def_name))
     }

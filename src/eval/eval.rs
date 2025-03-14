@@ -11,7 +11,7 @@ pub enum EvalRes {
     BOOLEAN(bool),
     Struct(Vec<EvalRes>),
     VOID,
-    FUNCTION(String, ParameterList, BlockStmt),
+    FUNCTION(Option<String>, ParameterList, BlockStmt),
 }
 
 impl EvalRes {

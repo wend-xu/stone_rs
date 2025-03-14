@@ -106,6 +106,11 @@ macro_rules! seq {
        seq!(factory crate::ast::list::def_stmt::DefStmtFactory::new(); seq : $($tail) *)
     };
 
+    (fun: $($tail:tt) *) => {
+       seq!(factory crate::ast::list::fun_stmt::FunStmtFactory::new(); seq : $($tail) *)
+    };
+
+
 
     (factory $factory:expr;seq : $($tail:tt) *) => {
        {

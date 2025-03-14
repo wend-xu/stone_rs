@@ -59,7 +59,7 @@ pub mod eval_test {
         let func_name = res.unwrap();
         match wrapper.get(func_name.to_string().as_str()).unwrap() {
             EvalRes::FUNCTION(fun_name, param_list, block) => {
-                println!("函数名称：{}", fun_name);
+                println!("函数名称：{}", fun_name.unwrap_or("匿名函数".to_string()));
                 println!("代码块：\n{}", block.location());
                 let eval_res = block.do_eval(&mut wrapper);
                 println!("{:?}", eval_res);
@@ -128,15 +128,7 @@ pub mod eval_test {
             add = 1;
             add_one(add)
         "#;
-        let mut stone = StoneLang::new_def();
-        match stone.code_2_ast(code.to_string()) {
-            Ok(ast_tree_vec) => {
-                println!("{}", AstList::new_def(ast_tree_vec).location());
-            }
-            Err(err_msg) => {
-                println!("{}", err_msg);
-            }
-        }
+        test_2_tree(code.to_string());
     }
 
 
@@ -151,21 +143,44 @@ pub mod eval_test {
             add = add_one(add);
             add
         "#;
-        let mut stone = StoneLang::new_def();
-        match stone.code_eval(code.to_string()) {
-            Ok(env) => {
-                println!("执行成功:{:?}",env.get_ref("add").unwrap());
+        test_eval(code.to_string());
+    }
+
+
+    #[test]
+    fn test_function_3() {
+        let code = r#"
+            def fib(n){
+               if n < 2 {
+                  n
+               }else {
+                  fib(n - 1) + fib ( n -2 )
+               }
             }
-            Err(err_msg) => {
-                println!("{}", err_msg);
+            fib(10);
+            fib(1);
+        "#;
+        test_eval(code.to_string());
+    }
+
+    #[test]
+    fn test_function_4() {
+        let code = r#"
+            def add_one(){
+                add = add+1;
+                add
             }
-        };
+            add = 65535;
+            add_one();
+            add
+        "#;
+        test_eval(code.to_string());
     }
 
     #[test]
     fn test_nest_env() {
         let mut outer = EnvWrapper::new();
-        outer.put("a".to_string(), EvalRes::BOOLEAN(false)) ;
+        outer.put("a".to_string(), EvalRes::BOOLEAN(false));
 
         {
             let mut nest = MapNestedEnv::new_with(&mut outer);
@@ -179,6 +194,45 @@ pub mod eval_test {
             };
         }
 
-        println!("{:?}",outer.get_ref("a").unwrap());
+        println!("{:?}", outer.get_ref("a").unwrap());
+    }
+
+
+    fn test_eval(code:String){
+        let mut stone = StoneLang::new_def();
+        match stone.code_eval(code.to_string()) {
+            Ok(env) => {
+                // println!("执行成功:{:?}", env.get_ref("add").unwrap());
+            }
+            Err(err_msg) => {
+                println!("{}", err_msg);
+            }
+        };
+    }
+
+    fn test_2_tree(code:String){
+        let mut stone = StoneLang::new_def();
+        match stone.code_2_ast(code.to_string()) {
+            Ok(env) => {
+                println!("{}",AstList::new_def(env).location() );
+            }
+            Err(err_msg) => {
+                println!("{}", err_msg);
+            }
+        };
+    }
+
+
+    #[test]
+    fn test_function_5() {
+        let code = r#"
+            add_one = fun(add){
+                add = add+1;
+                add
+            }
+            i = add_one(1)
+            i
+        "#;
+        test_eval(code.to_string());
     }
 }

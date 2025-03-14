@@ -102,7 +102,7 @@ impl AstTree for AstList {
 
 impl Debug for AstList {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.location())
+        write!(f, "<{}>",self.node_name)
     }
 }
 

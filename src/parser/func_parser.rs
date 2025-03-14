@@ -32,7 +32,7 @@ pub fn stone_parser_with_func() -> Parser {
 
 
     let primary =
-        or!(primary: seq!{seq: "(" expr ")"},  seq!(seq: number),  seq!(seq: id->reserved), seq!(seq:string));
+        or!(primary:seq!{fun: "fun" param_list block } , seq!{seq: "(" expr ")"},  seq!(seq: number),  seq!(seq: id->reserved), seq!(seq:string));
     seq!(primary; seq : {postfix});
 
     let factor = or!(seq!(neg: "-" primary),primary);
