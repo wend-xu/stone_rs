@@ -235,4 +235,19 @@ pub mod eval_test {
         "#;
         test_eval(code.to_string());
     }
+
+
+    #[test]
+    fn test_function_6() {
+        let code = r#"
+           def add_fun_def(){
+               fun(to_add) { to_add + 1  }
+           }
+           add_fun = add_fun_def();
+           add_fun;
+           i = add_fun(1)
+           i
+        "#;
+        test_eval(code.to_string());
+    }
 }
