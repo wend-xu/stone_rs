@@ -1,11 +1,12 @@
 use crate::ast::ast_tree::AstTree;
 use crate::ast_leaf_factory_default_impl;
+use crate::eval::eval::Evaluate;
 use crate::token::Token;
 use crate::util::str_util::wrapper_node_name;
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::slice::Iter;
-use crate::eval::eval::Evaluate;
 
+#[derive(Debug, Clone)]
 pub struct AstLeaf {
     token: Box<dyn Token>,
 }
@@ -46,9 +47,29 @@ impl AstTree for AstLeaf {
     }
 
     fn eval(&self) -> Box<&dyn Evaluate> {
-       panic!("[AstLeaf][eval] unsupported eval type");
+        panic!("[AstLeaf][eval] unsupported eval type");
+    }
+
+    fn to_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn clone_tree(&self) -> Box<dyn AstTree> {
+       Box::new(self.clone())
+    }
+
+    fn eq_tree(&self, other: &dyn AstTree) -> bool {
+        if self.actual_type_id() == TypeId::of::<AstLeaf>() {
+            self == other.to_any().downcast_ref::<AstLeaf>().unwrap()
+        }else{ false }
     }
 }
 
 ast_leaf_factory_default_impl! {DefAstLeafFactory,AstLeaf}
+
+impl PartialEq for AstLeaf {
+    fn eq(&self, other: &Self) -> bool {
+        self.token.eq(&other.token)
+    }
+}
 

@@ -6,6 +6,7 @@ use crate::eval::eval::{EvalRes, Evaluate};
 use crate::{ast_list_default_impl, ast_list_default_new, ast_list_factory_default_impl, number_compute};
 use crate::ast::leaf::identifier_literal::IdentifierLiteral;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct BinaryExpr {
     children: AstList,
 }
@@ -22,7 +23,7 @@ impl BinaryExpr {
     fn get_id_literal(&self, index: usize, err_part: &str) -> Result<String, String> {
         let id_literal_op = self.children.child(index);
         if id_literal_op.is_none() {
-            return Err(format!("[BinaryExpr] {err_part} is none,error"));
+            return Err(format!("[BinaryExpr] {err_part} is none,child len is {} , error",self.children.num_children()));
         }
         let id_literal = id_literal_op.unwrap();
         if id_literal.actual_type_id() == TypeId::of::<IdentifierLiteral>() {
@@ -32,6 +33,10 @@ impl BinaryExpr {
         } else {
             Err(format!("[BinaryExpr] get {err_part} literal fail,{err_part} not a IdentifierLiteral"))
         }
+        // match self.children.child_downcast::<IdentifierLiteral>(index) {
+        //     Ok(identifier) => { Ok(identifier.id_name()) }
+        //     Err(err_msg) => { Err(format!("[BinaryExpr] get {err_part} literal fail: {err_msg}")) }
+        // }
     }
 
     fn left_literal(&self) -> Result<String, String> {
@@ -80,6 +85,7 @@ impl BinaryExpr {
 }
 
 ast_list_default_impl! {BinaryExpr}
+
 
 ast_list_factory_default_impl! {BinaryExprFactory,BinaryExpr}
 

@@ -66,6 +66,16 @@ macro_rules! ast_leaf_default_impl {
             fn to_any(& self) -> &dyn std::any::Any{
                 self
             }
+
+            fn clone_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
+                std::boxed::Box::new(self.clone())
+            }
+
+            fn eq_tree(&self, other: &dyn crate::ast::ast_tree::AstTree) -> bool {
+                if self.actual_type_id() == std::any::TypeId::of::<$node_name>() {
+                    self.ast_leaf == other.to_any().downcast_ref::<$node_name>().unwrap().ast_leaf
+                }else { false }
+            }
        }
     };
 }
@@ -117,6 +127,21 @@ macro_rules! ast_list_default_impl {
 
             fn eval(&self) -> Box<&dyn crate::eval::eval::Evaluate> {
                 Box::new(self)
+            }
+
+            fn to_any(& self) -> &dyn std::any::Any{
+                self
+            }
+
+            fn clone_tree(&self) -> Box<dyn crate::ast::ast_tree::AstTree> {
+                let self_clone = (*self).clone();
+                Box::new(self_clone)
+            }
+
+            fn eq_tree(&self, other:&dyn crate::ast::ast_tree::AstTree) -> bool {
+                 if other.actual_type_id() == std::any::TypeId::of::<$node_name>() {
+                     self == other.to_any().downcast_ref::<$node_name>().unwrap()
+                 }else{ false }
             }
        }
     };
@@ -278,4 +303,17 @@ macro_rules! ast_leaf_default_eval_impl {
             }
         }
     };
+}
+
+#[macro_export]
+macro_rules! param_list {
+    ($($param_name:tt)+) => {
+        {
+            let mut params = vec![];
+            $(
+              params.push($param_name);
+            )+
+            ParameterList::new_with_name(params)
+        }
+    }
 }

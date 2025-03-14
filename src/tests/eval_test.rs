@@ -5,7 +5,7 @@ mod eval_tests {
     use crate::eval::eval::{EvalRes, Evaluate};
     use crate::lexer::lexer::Lexer;
     use crate::lexer::line_reader_lexer::LineReaderLexer;
-    use crate::parser::basic_parser::stone_parser;
+    use crate::parser::basic_parser_macros::stone_parser;
     use crate::token::token_identifier::TokenIdentifier;
     use crate::token::TokenValue;
     use std::any::TypeId;
@@ -299,7 +299,7 @@ even + odd
     }
 
     fn _eval(code: String, env: &mut EnvWrapper) -> EvalRes {
-        let mut lexer = LineReaderLexer::new(code);
+        let mut lexer = LineReaderLexer::new_with_code(code);
         let parser = stone_parser();
         let mut res = EvalRes::VOID;
         while let Some(_) = lexer.peek(0) {
@@ -313,8 +313,6 @@ even + odd
                 }
             };
             let is_null_sata = tree.actual_type_id() == TypeId::of::<NullStmt>();
-            // println!("location:\n{}", tree.location());
-            // println!("location:\n{}", is_null_sata);
             if is_null_sata {
                 continue;
             }

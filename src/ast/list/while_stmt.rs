@@ -3,6 +3,7 @@ use crate::{ast_list_factory_default_impl, ast_list_default_impl, ast_list_defau
 use crate::eval::environment::EnvWrapper;
 use crate::eval::eval::{EvalRes, Evaluate};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct WhileStmt {
     children: AstList,
 }

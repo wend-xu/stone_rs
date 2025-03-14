@@ -157,7 +157,7 @@ pub struct IdToken {
     factory: Box<dyn AstLeafFactory>,
 }
 impl IdToken {
-    pub fn new(factory: Option<Box<dyn AstLeafFactory>>, vec: Vec<&str>) -> Box<Self> {
+    pub fn new(factory: Option<Box<dyn AstLeafFactory>>, vec: &Vec<&str>) -> Box<Self> {
         let factory = match factory {
             None => { IdentifierLiteralFactory::new() }
             Some(factory) => { factory }
@@ -167,7 +167,7 @@ impl IdToken {
     }
 
     pub fn new_def(vec: Vec<&str>) -> Box<Self> {
-        Self::new(None, vec)
+        Self::new(None, &vec)
     }
 }
 impl Element for IdToken {

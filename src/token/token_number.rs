@@ -1,7 +1,7 @@
 use crate::token::token::TokenLine;
 use crate::token::{Token, TokenValue};
 
-#[derive(Debug)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct TokenNumber {
     token_line: TokenLine,
     number: TokenValue,
@@ -38,5 +38,9 @@ impl Token for TokenNumber {
 
     fn line_number(&self) -> &usize {
         &self.token_line
+    }
+
+    fn clone_token(&self) -> Box<dyn Token> {
+        Box::new(self.clone())
     }
 }

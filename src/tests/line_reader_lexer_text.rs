@@ -94,7 +94,7 @@ mod line_reader_lexer_text {
     #[test]
     pub fn line_match_test() {
         let test_code = "i=j>0 || j = 0 ? \"中文111111\"";
-        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(test_code.to_string());
         // lexer.read_line(test_code, 1);
         lexer.read_line();
     }
@@ -104,7 +104,7 @@ mod line_reader_lexer_text {
         let test_code = r#"
            // size = j.len()
         "#;
-        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(test_code.to_string());
         while let Some(token_box) = lexer.read() {
             println!("{:?}", token_box.value());
         }
@@ -117,7 +117,7 @@ mod line_reader_lexer_text {
            i=j>0 || j = 0 ? "中文111111":"中文1222222"
             size = j.len()
         "#;
-        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(test_code.to_string());
         while let Some(token_box) = lexer.read() {
             println!("{:?}", token_box.value());
         }
@@ -130,7 +130,7 @@ mod line_reader_lexer_text {
            i=j>0 || j = 0 ? "中文111111":"中文1222222"
             size = j.len()
         "#;
-        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(test_code.to_string());
         while let Some(token_box) = lexer.read() {
             println!("{:?}", token_box.value());
         }
@@ -162,7 +162,7 @@ mod line_reader_lexer_text {
             }
             even + odd
         "#;
-        let mut lexer = LineReaderLexer::new(test_code.to_string());
+        let mut lexer = LineReaderLexer::new_with_code(test_code.to_string());
         // while let Some(token_box) = lexer.read() {
         //     println!("{:?}", token_box.value());
         // }
