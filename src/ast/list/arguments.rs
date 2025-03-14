@@ -30,20 +30,12 @@ impl Evaluate for Arguments {
     fn do_eval_postfix(&self, env: &mut EnvWrapper, result: EvalRes) -> Result<EvalRes, String> {
         match result {
             EvalRes::FUNCTION(func_name, param_list, func_block) => {
-                if param_list.num_children() != self.children.num_children() {
-                    return Err(format!("[Arguments][do_eval_postfix] incorrect arg num {} , need {} in function's param list",
-                                       self.children.num_children(), param_list.num_children()));
-                }
-                // 捕捉执行环境后，将环境的引入转入被内部
-                let mut nest_env = MapNestedEnv::new();
-                for (index, arg) in self.children().enumerate() {
-                    let param_name = param_list.param_name(env, index)?;
-                    let arg_val = arg.eval().do_eval(env)?;
-                    nest_env.put(param_name, arg_val)?;
-                }
-                nest_env.set_outer(env);
-                let mut nest_env = nest_env.wrapper();
-                Ok(func_block.do_eval(&mut nest_env)?)
+                let mut nest_env = MapNestedEnv::capture(env, self, &param_list)?.wrapper();
+                func_block.do_eval(&mut nest_env)
+            }
+            EvalRes::NativeFun(func_name, func_block_native) => {
+                let mut nest_env = MapNestedEnv::capture(env, self, &func_block_native.param_list())?.wrapper();
+                func_block_native.do_eval(&mut nest_env)
             }
             _ => {
                 Err("[Arguments][do_eval_postfix] not a function, can not eval , current function type is EvalRes::FUNCTION".to_string())

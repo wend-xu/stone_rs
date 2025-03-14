@@ -6,6 +6,9 @@ use crate::ast::list::null_stmt::NullStmt;
 use crate::eval::environment::EnvWrapper;
 use crate::lexer::lexer::Lexer;
 use crate::lexer::line_reader_lexer::LineReaderLexer;
+use crate::native::log::Log;
+use crate::native::native_fun::reg_native_fun;
+use crate::native::native_reg::native_reg;
 use crate::parser::func_parser::stone_parser_with_func;
 use crate::parser::parser::Parser;
 use crate::token::TokenValue;
@@ -31,7 +34,7 @@ impl<'s> StoneLang<'s> {
 
         lexer.reset_code(code);
         while let Some(token) = lexer.peek(0) {
-            if TokenValue::EOF.eq(token.value()){
+            if TokenValue::EOF.eq(token.value()) {
                 break;
             }
             if !parser.is_match(lexer.deref_mut()) {
@@ -47,10 +50,13 @@ impl<'s> StoneLang<'s> {
     pub fn code_eval(&mut self, code: String) -> Result<EnvWrapper, String> {
         let mut env = EnvWrapper::new();
 
+        // 注册原生函数
+        native_reg( &mut env)?;
+
         let ast_tree_res_vec = self.code_2_ast(code)?;
-        for (index,ast_tree_one) in ast_tree_res_vec.iter().enumerate() {
+        for (index, ast_tree_one) in ast_tree_res_vec.iter().enumerate() {
             let res = ast_tree_one.eval().do_eval(&mut env)?;
-            println!("eval res: {:?}",res);
+            println!("eval res: {:?}", res);
         }
         Ok(env)
     }

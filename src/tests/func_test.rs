@@ -14,6 +14,8 @@ pub mod eval_test {
     use crate::token::TokenValue;
     use crate::{or, seq};
     use crate::ast::list::null_stmt::NullStmt;
+    use crate::native::log::Log;
+    use crate::native::native_fun::NativeFun;
     use crate::stone::StoneLang;
 
     #[test]
@@ -246,7 +248,15 @@ pub mod eval_test {
            add_fun = add_fun_def();
            add_fun;
            i = add_fun(1)
-           i
+           log(i)
+        "#;
+        test_eval(code.to_string());
+    }
+
+    #[test]
+    fn test_native() {
+        let code = r#"
+            log("hello world")
         "#;
         test_eval(code.to_string());
     }

@@ -14,6 +14,14 @@ pub struct ParameterList {
 impl ParameterList {
     ast_list_default_new!{ ParameterList }
 
+    pub fn new_with_name(param_list:Vec<&str>) -> ParameterList{
+        let mut c:Vec<Box<dyn AstTree>> = vec![];
+        for param_name in param_list {
+            c.push(IdentifierLiteral::new_with_str(param_name))
+        }
+        ParameterList::new(c)
+    }
+
     pub fn param_name(&self, env: &mut EnvWrapper, index:usize) -> Result<String, String> {
         let param_one =
             self.child_req(index,format!("[Arguments][do_eval_postfix] is None in child index {}",index))?;

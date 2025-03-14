@@ -15,6 +15,7 @@ mod ast;
 mod parser;
 mod eval;
 mod stone;
+mod native;
 
 fn main() {
     println!("Hello, world!");

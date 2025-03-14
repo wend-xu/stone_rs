@@ -304,3 +304,16 @@ macro_rules! ast_leaf_default_eval_impl {
         }
     };
 }
+
+#[macro_export]
+macro_rules! param_list {
+    ($($param_name:tt)+) => {
+        {
+            let mut params = vec![];
+            $(
+              params.push($param_name);
+            )+
+            ParameterList::new_with_name(params)
+        }
+    }
+}
